@@ -1,0 +1,17 @@
+export const Colors = {
+  background: '#FFFDE8',
+  foreground: '#2D2D2D',
+  cardBg: '#FFFFFF',
+  cardBorder: '#3D3D3D',
+  accent: '#E60012',
+  accentLight: '#FF1A2D',
+  accentDark: '#C4000F',
+  muted: '#8B8B8B',
+  nintendoBlue: '#4A6FB5',
+  nintendoYellow: '#F5C518',
+  nintendoGreen: '#48C774',
+  border: '#E5E5E5',
+  shadowColor: '#2D2D2D',
+  white: '#FFFFFF',
+  black: '#000000',
+} as const;
