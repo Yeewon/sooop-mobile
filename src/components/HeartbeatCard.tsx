@@ -95,49 +95,64 @@ export default function HeartbeatCard({
     : null;
 
   return (
-    <NintendoCard style={styles.card}>
-      {/* 아바타 + 상태 */}
-      <Pressable onPress={onPhoto} style={styles.avatarWrap}>
-        <PixelAvatar avatarData={friend.avatar_data} size={44} />
-        <Image source={heartbeat.icon} style={styles.statusIcon} />
-      </Pressable>
+    <Pressable onPress={onPhoto}>
+      {({pressed}) => (
+        <NintendoCard
+          style={{
+            ...styles.card,
+            ...(pressed
+              ? {
+                  transform: [{translateY: 4}],
+                  shadowOffset: {width: 0, height: 0},
+                }
+              : {}),
+          }}>
+          {/* 아바타 + 상태 */}
+          <View style={styles.avatarWrap}>
+            <PixelAvatar avatarData={friend.avatar_data} size={44} />
+            <Image source={heartbeat.icon} style={styles.statusIcon} />
+          </View>
 
-      {/* 정보 */}
-      <View style={styles.info}>
-        <Text style={styles.nickname} numberOfLines={1}>
-          {friend.nickname}
-        </Text>
-        <View style={styles.statusRow}>
-          <Text style={[styles.statusLabel, {color: heartbeat.color}]}>
-            {heartbeat.label}
-          </Text>
-          {friend.last_checkin && (
-            <Text style={styles.timeText}>
-              {formatTime(friend.last_checkin)}
+          {/* 정보 */}
+          <View style={styles.info}>
+            <Text style={styles.nickname} numberOfLines={1}>
+              {friend.nickname}
             </Text>
-          )}
-        </View>
-      </View>
+            <View style={styles.statusRow}>
+              <Text style={[styles.statusLabel, {color: heartbeat.color}]}>
+                {heartbeat.label}
+              </Text>
+              {friend.last_checkin && (
+                <Text style={styles.timeText}>
+                  {formatTime(friend.last_checkin)}
+                </Text>
+              )}
+            </View>
+          </View>
 
-      {/* 인사 버튼 */}
-      {!friend.allow_knocks ? (
-        <NintendoButton
-          title={friend.has_knock_request_sent ? '요청함' : '인사 요청'}
-          variant={friend.has_knock_request_sent ? 'muted' : 'accent'}
-          small
-          disabled={friend.has_knock_request_sent}
-          onPress={onKnockRequest}
-        />
-      ) : (
-        <NintendoButton
-          title={myIcon ? '인사함' : '인사하기'}
-          variant={myIcon ? 'muted' : isInactive ? 'accent' : 'yellow'}
-          small
-          disabled={!!myIcon}
-          onPress={() => onKnock('')}
-        />
+          {/* 인사 버튼 */}
+          <View onStartShouldSetResponder={() => true}>
+            {!friend.allow_knocks ? (
+              <NintendoButton
+                title={friend.has_knock_request_sent ? '요청함' : '인사 요청'}
+                variant={friend.has_knock_request_sent ? 'muted' : 'accent'}
+                small
+                disabled={friend.has_knock_request_sent}
+                onPress={onKnockRequest}
+              />
+            ) : (
+              <NintendoButton
+                title={myIcon ? '인사함' : '인사하기'}
+                variant={myIcon ? 'muted' : isInactive ? 'accent' : 'yellow'}
+                small
+                disabled={!!myIcon}
+                onPress={() => onKnock('')}
+              />
+            )}
+          </View>
+        </NintendoCard>
       )}
-    </NintendoCard>
+    </Pressable>
   );
 }
 

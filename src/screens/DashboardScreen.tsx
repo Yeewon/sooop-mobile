@@ -137,14 +137,27 @@ export default function DashboardScreen() {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Pressable onPress={() => setShowAvatarBuilder(true)}>
-            <NintendoCard style={styles.avatarBox}>
-              <PixelAvatar
-                avatarData={profile?.avatar_data ?? null}
-                size={40}
-              />
-            </NintendoCard>
+            {({pressed}) => (
+              <NintendoCard
+                style={{
+                  ...styles.avatarBox,
+                  ...(pressed
+                    ? {
+                        transform: [{translateY: 4}],
+                        shadowOffset: {width: 0, height: 0},
+                      }
+                    : {}),
+                }}>
+                <PixelAvatar
+                  avatarData={profile?.avatar_data ?? null}
+                  size={40}
+                />
+              </NintendoCard>
+            )}
           </Pressable>
-          <Pressable onPress={() => setShowNicknameEdit(true)}>
+          <Pressable
+            onPress={() => setShowNicknameEdit(true)}
+            style={({pressed}) => pressed && {opacity: 0.6}}>
             <Text style={styles.greeting}>
               어서 와, {profile?.nickname || '주민'}
             </Text>
@@ -154,7 +167,10 @@ export default function DashboardScreen() {
         <View style={styles.headerRight}>
           <Pressable
             onPress={() => setShowInvite(true)}
-            style={styles.headerBtn}>
+            style={({pressed}) => [
+              styles.headerBtn,
+              pressed && styles.headerBtnPressed,
+            ]}>
             <Image
               source={require('../assets/icons/flag.png')}
               style={styles.headerBtnIcon}
@@ -162,7 +178,10 @@ export default function DashboardScreen() {
           </Pressable>
           <Pressable
             onPress={() => setShowPrivacy(true)}
-            style={styles.headerBtn}>
+            style={({pressed}) => [
+              styles.headerBtn,
+              pressed && styles.headerBtnPressed,
+            ]}>
             <Image
               source={require('../assets/icons/computer.png')}
               style={styles.headerBtnIcon}
@@ -170,7 +189,10 @@ export default function DashboardScreen() {
           </Pressable>
           <Pressable
             onPress={() => setShowLogout(true)}
-            style={styles.headerBtn}>
+            style={({pressed}) => [
+              styles.headerBtn,
+              pressed && styles.headerBtnPressed,
+            ]}>
             <Image
               source={require('../assets/icons/thunder.png')}
               style={styles.headerBtnIcon}
@@ -198,22 +220,39 @@ export default function DashboardScreen() {
             }
           }}
           style={styles.toggleRow}>
+          {({pressed}) => (
+            <>
           <View
             style={[
-              styles.toggleDot,
+              styles.toggleTrack,
               {
                 backgroundColor:
                   profile?.allow_knocks !== false
                     ? Colors.nintendoGreen
                     : Colors.muted,
+                opacity: profile?.allow_knocks !== false ? 1 : 0.4,
               },
-            ]}
-          />
+              pressed && {
+                transform: [{translateY: 2}],
+                shadowOffset: {width: 0, height: 0},
+              },
+            ]}>
+            <View
+              style={[
+                styles.toggleKnob,
+                profile?.allow_knocks !== false
+                  ? styles.toggleKnobOn
+                  : styles.toggleKnobOff,
+              ]}
+            />
+          </View>
           <Text style={styles.toggleText}>
             {profile?.allow_knocks !== false
               ? '인사 받는 중'
               : '인사 안 받는 중'}
           </Text>
+            </>
+          )}
         </Pressable>
       </NintendoCard>
 
@@ -406,7 +445,10 @@ export default function DashboardScreen() {
                 <Pressable
                   key={item.id}
                   onPress={() => handleKnock(showKnockPicker, item.id)}
-                  style={styles.pickerItem}>
+                  style={({pressed}) => [
+                    styles.pickerItem,
+                    pressed && styles.headerBtnPressed,
+                  ]}>
                   <Image source={item.icon} style={styles.pickerIcon} />
                   <Text style={styles.pickerLabel}>{item.label}</Text>
                 </Pressable>
@@ -638,10 +680,19 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: Colors.border,
-    backgroundColor: Colors.cardBg,
+    borderColor: Colors.shadowColor,
+    backgroundColor: Colors.nintendoBlue,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: Colors.shadowColor,
+    shadowOffset: {width: 0, height: 3},
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
+  },
+  headerBtnPressed: {
+    transform: [{translateY: 3}],
+    shadowOffset: {width: 0, height: 0},
   },
   headerBtnIcon: {
     width: 18,
@@ -682,12 +733,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.sm,
   },
-  toggleDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+  toggleTrack: {
+    width: 36,
+    height: 20,
     borderWidth: 2,
-    borderColor: Colors.border,
+    borderColor: Colors.shadowColor,
+    borderRadius: 4,
+    shadowColor: Colors.shadowColor,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+    justifyContent: 'center',
+  },
+  toggleKnob: {
+    width: 12,
+    height: 12,
+    borderWidth: 2,
+    borderColor: Colors.shadowColor,
+    borderRadius: 2,
+    backgroundColor: Colors.white,
+  },
+  toggleKnobOn: {
+    alignSelf: 'flex-end',
+    marginRight: 2,
+  },
+  toggleKnobOff: {
+    alignSelf: 'flex-start',
+    marginLeft: 2,
   },
   toggleText: {
     fontFamily: Fonts.bold,
