@@ -65,6 +65,8 @@
 			<string>com.greenonion.sooop</string>
 		</dict>
 	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>사진 프레임을 저장하기 위해 사진 라이브러리 접근이 필요해요</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 </dict>
