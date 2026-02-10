@@ -1,25 +1,25 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {useAuthContext} from '../contexts/AuthContext';
 import LoginScreen from '../screens/LoginScreen';
 import SignUpScreen from '../screens/SignUpScreen';
 import EmailConfirmScreen from '../screens/EmailConfirmScreen';
 import DashboardScreen from '../screens/DashboardScreen';
-import LoadingSpinner from '../components/LoadingSpinner';
-import {View, StyleSheet} from 'react-native';
-import {Colors} from '../theme';
+import BootSplash from 'react-native-bootsplash';
 
 const Stack = createNativeStackNavigator();
 
 export default function RootNavigator() {
   const {user, loading} = useAuthContext();
 
+  useEffect(() => {
+    if (!loading) {
+      BootSplash.hide({fade: true});
+    }
+  }, [loading]);
+
   if (loading) {
-    return (
-      <View style={styles.loading}>
-        <LoadingSpinner />
-      </View>
-    );
+    return null;
   }
 
   return (
@@ -40,12 +40,3 @@ export default function RootNavigator() {
     </Stack.Navigator>
   );
 }
-
-const styles = StyleSheet.create({
-  loading: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.background,
-  },
-});

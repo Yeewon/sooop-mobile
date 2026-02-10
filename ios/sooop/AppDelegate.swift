@@ -3,6 +3,7 @@ import React
 import React_RCTAppDelegate
 import ReactAppDependencyProvider
 import FirebaseCore
+import RNBootSplash
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -25,12 +26,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     reactNativeFactory = factory
 
     window = UIWindow(frame: UIScreen.main.bounds)
+    window?.backgroundColor = UIColor(red: 1.0, green: 0.992, blue: 0.910, alpha: 1.0) // #FFFDE8
 
     factory.startReactNative(
       withModuleName: "sooop",
       in: window,
       launchOptions: launchOptions
     )
+
+    RNBootSplash.initWithStoryboard("BootSplash", rootView: window?.rootViewController?.view)
 
     return true
   }
