@@ -16,7 +16,6 @@ import {useDeepLink} from '../hooks/useDeepLink';
 import {KNOCK_ICONS, DAILY_MESSAGES, VILLAGE_CHARACTERS, getDailyIndex} from '../shared/constants';
 import {FriendWithStatus} from '../shared/types';
 import PixelAvatar from '../components/PixelAvatar';
-import NpcAvatar from '../components/NpcAvatar';
 import TypewriterText from '../components/TypewriterText';
 import NintendoCard from '../components/NintendoCard';
 import NintendoButton from '../components/NintendoButton';
@@ -24,7 +23,6 @@ import HeartbeatCard from '../components/HeartbeatCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import AnimatedEntrance from '../components/AnimatedEntrance';
-import SeasonalEffect from '../components/SeasonalEffect';
 import InviteModal from '../modals/InviteModal';
 import AvatarBuilderModal from '../modals/AvatarBuilderModal';
 import PhotoFrameModal from '../modals/PhotoFrameModal';
@@ -430,7 +428,6 @@ export default function DashboardScreen() {
 
   return (
     <View style={styles.container}>
-      {/* <SeasonalEffect /> */}
       <FlatList
         data={!friendsLoading ? friends : []}
         renderItem={renderFriendItem}
