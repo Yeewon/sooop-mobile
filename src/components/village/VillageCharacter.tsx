@@ -20,6 +20,8 @@ interface VillageCharacterProps {
   size: number;
   isMe?: boolean;
   isOnline?: boolean;
+  chatMessage?: string;
+  isChatWhisper?: boolean;
   onPress?: () => void;
 }
 
@@ -46,6 +48,8 @@ export default function VillageCharacter({
   size,
   isMe = false,
   isOnline,
+  chatMessage,
+  isChatWhisper,
   onPress,
 }: VillageCharacterProps) {
   const colors = useColors();
@@ -81,7 +85,26 @@ export default function VillageCharacter({
           alignItems: 'center',
           transform: [{scale: pressed ? 0.9 : 1}],
         })}>
-        {checkinLabel !== '' && (
+        {/* 채팅 말풍선 */}
+        {chatMessage && (
+          <View style={{
+            ...styles.chatBubble,
+            ...(isChatWhisper ? {borderColor: colors.nintendoBlue} : {}),
+          }}>
+            {isChatWhisper && (
+              <Text style={styles.whisperLabel}>귓속말</Text>
+            )}
+            <Text style={styles.chatText} numberOfLines={2}>
+              {chatMessage}
+            </Text>
+            <View style={{
+              ...styles.chatTriangle,
+              ...(isChatWhisper ? {borderTopColor: colors.nintendoBlue} : {}),
+            }} />
+          </View>
+        )}
+        {/* 체크인 시간 (채팅 없을 때만) */}
+        {!chatMessage && checkinLabel !== '' && (
           <Text style={styles.checkinLabel}>{checkinLabel}</Text>
         )}
         <View>
@@ -146,6 +169,41 @@ function useStyles(colors: ColorScheme) {
           borderRadius: 5,
           borderWidth: 2,
           borderColor: colors.villageGrass,
+        },
+        chatBubble: {
+          backgroundColor: colors.cardBg,
+          borderRadius: 8,
+          borderWidth: 2,
+          borderColor: colors.cardBorder,
+          paddingHorizontal: 6,
+          paddingVertical: 3,
+          maxWidth: 120,
+          marginBottom: 4,
+          alignItems: 'center',
+        },
+        chatText: {
+          fontFamily: Fonts.bold,
+          fontSize: 9,
+          color: colors.foreground,
+          textAlign: 'center',
+        },
+        chatTriangle: {
+          position: 'absolute',
+          bottom: -6,
+          width: 0,
+          height: 0,
+          borderLeftWidth: 4,
+          borderRightWidth: 4,
+          borderTopWidth: 5,
+          borderLeftColor: 'transparent',
+          borderRightColor: 'transparent',
+          borderTopColor: colors.cardBorder,
+        },
+        whisperLabel: {
+          fontFamily: Fonts.bold,
+          fontSize: 7,
+          color: colors.nintendoBlue,
+          marginBottom: 1,
         },
       }),
     [colors],

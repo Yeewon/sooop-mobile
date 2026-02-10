@@ -16,6 +16,8 @@ import {
   Modal,
   Linking,
   AppState,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
 import { useColors } from '../contexts/ThemeContext';
@@ -613,7 +615,10 @@ export default function DashboardScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <FlatList
         data={viewMode === 'list' && !friendsLoading ? friends : []}
         renderItem={renderFriendItem}
@@ -622,6 +627,7 @@ export default function DashboardScreen() {
         ListFooterComponent={listFooter}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         refreshing={refreshing}
         onRefresh={onRefresh}
       />
@@ -1196,7 +1202,7 @@ export default function DashboardScreen() {
           onDismiss={() => setKnockToast(null)}
         />
       )}
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
