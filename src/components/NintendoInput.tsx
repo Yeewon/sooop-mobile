@@ -1,29 +1,39 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {TextInput, StyleSheet, TextInputProps} from 'react-native';
-import {Colors, Fonts} from '../theme';
+import {useColors} from '../contexts/ThemeContext';
+import type {ColorScheme} from '../theme/colors';
+import {Fonts} from '../theme';
 
 interface NintendoInputProps extends TextInputProps {}
 
 export default function NintendoInput(props: NintendoInputProps) {
+  const colors = useColors();
+  const styles = useStyles(colors);
   return (
     <TextInput
-      placeholderTextColor={Colors.muted}
+      placeholderTextColor={colors.muted}
       {...props}
       style={[styles.input, props.style]}
     />
   );
 }
 
-const styles = StyleSheet.create({
-  input: {
-    backgroundColor: Colors.cardBg,
-    borderWidth: 3,
-    borderColor: Colors.border,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontFamily: Fonts.regular,
-    fontSize: 14,
-    color: Colors.foreground,
-  },
-});
+function useStyles(colors: ColorScheme) {
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        input: {
+          backgroundColor: colors.cardBg,
+          borderWidth: 3,
+          borderColor: colors.border,
+          borderRadius: 12,
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+          fontFamily: Fonts.regular,
+          fontSize: 14,
+          color: colors.foreground,
+        },
+      }),
+    [colors],
+  );
+}

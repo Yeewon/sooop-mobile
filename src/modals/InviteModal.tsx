@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useMemo} from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,9 @@ import {
   Share,
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import {Colors, Fonts, FontSizes, Spacing} from '../theme';
+import {Fonts, FontSizes, Spacing} from '../theme';
+import {useColors} from '../contexts/ThemeContext';
+import type {ColorScheme} from '../theme/colors';
 import NintendoButton from '../components/NintendoButton';
 import NintendoCard from '../components/NintendoCard';
 
@@ -24,6 +26,8 @@ export default function InviteModal({
   onAddFriend,
   onClose,
 }: InviteModalProps) {
+  const colors = useColors();
+  const styles = useStyles(colors);
   const [friendCode, setFriendCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -99,7 +103,7 @@ export default function InviteModal({
           <TextInput
             style={styles.input}
             placeholder="코드 입력"
-            placeholderTextColor={Colors.muted}
+            placeholderTextColor={colors.muted}
             value={friendCode}
             onChangeText={t => setFriendCode(t.toUpperCase())}
             maxLength={6}
@@ -123,106 +127,112 @@ export default function InviteModal({
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 200,
-    padding: Spacing.lg,
-  },
-  card: {
-    backgroundColor: Colors.cardBg,
-    borderRadius: 16,
-    borderWidth: 3,
-    borderColor: Colors.border,
-    padding: Spacing.xl,
-    width: '100%',
-    maxWidth: 360,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.xl,
-  },
-  titleIcon: {width: 24, height: 24},
-  title: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.lg,
-    color: Colors.foreground,
-  },
-  label: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.sm,
-    color: Colors.muted,
-    marginBottom: Spacing.sm,
-  },
-  codeBox: {
-    padding: Spacing.md,
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  codeText: {
-    fontFamily: Fonts.regular,
-    fontSize: FontSizes.sm,
-    color: Colors.accent,
-  },
-  btnRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-    marginBottom: Spacing.xs,
-  },
-  flex1: {flex: 1},
-  hint: {
-    fontFamily: Fonts.regular,
-    fontSize: FontSizes.xs,
-    color: Colors.muted,
-    marginTop: Spacing.xs,
-  },
-  divider: {
-    height: 2,
-    backgroundColor: Colors.border,
-    marginVertical: Spacing.xl,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-    alignItems: 'center',
-  },
-  input: {
-    flex: 1,
-    borderWidth: 3,
-    borderColor: Colors.border,
-    borderRadius: 12,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    fontFamily: Fonts.regular,
-    fontSize: FontSizes.sm,
-    color: Colors.foreground,
-    backgroundColor: Colors.background,
-    textAlign: 'center',
-    letterSpacing: 4,
-  },
-  error: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.sm,
-    color: Colors.accent,
-    marginTop: Spacing.sm,
-  },
-  closeBtn: {
-    alignItems: 'center',
-    marginTop: Spacing.lg,
-    paddingVertical: Spacing.sm,
-  },
-  closeBtnText: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.sm,
-    color: Colors.muted,
-  },
-});
+function useStyles(colors: ColorScheme) {
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        overlay: {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 200,
+          padding: Spacing.lg,
+        },
+        card: {
+          backgroundColor: colors.cardBg,
+          borderRadius: 16,
+          borderWidth: 3,
+          borderColor: colors.border,
+          padding: Spacing.xl,
+          width: '100%',
+          maxWidth: 360,
+        },
+        titleRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: Spacing.sm,
+          marginBottom: Spacing.xl,
+        },
+        titleIcon: {width: 24, height: 24},
+        title: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.lg,
+          color: colors.foreground,
+        },
+        label: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.sm,
+          color: colors.muted,
+          marginBottom: Spacing.sm,
+        },
+        codeBox: {
+          padding: Spacing.md,
+          alignItems: 'center',
+          marginBottom: Spacing.sm,
+        },
+        codeText: {
+          fontFamily: Fonts.regular,
+          fontSize: FontSizes.sm,
+          color: colors.accent,
+        },
+        btnRow: {
+          flexDirection: 'row',
+          gap: Spacing.sm,
+          marginBottom: Spacing.xs,
+        },
+        flex1: {flex: 1},
+        hint: {
+          fontFamily: Fonts.regular,
+          fontSize: FontSizes.sm,
+          color: colors.muted,
+          marginTop: Spacing.sm,
+        },
+        divider: {
+          height: 2,
+          backgroundColor: colors.border,
+          marginVertical: Spacing.xl,
+        },
+        inputRow: {
+          flexDirection: 'row',
+          gap: Spacing.sm,
+          alignItems: 'center',
+        },
+        input: {
+          flex: 1,
+          borderWidth: 3,
+          borderColor: colors.border,
+          borderRadius: 12,
+          paddingHorizontal: Spacing.md,
+          paddingVertical: Spacing.sm,
+          fontFamily: Fonts.regular,
+          fontSize: FontSizes.sm,
+          color: colors.foreground,
+          backgroundColor: colors.background,
+          textAlign: 'center',
+          letterSpacing: 4,
+        },
+        error: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.sm,
+          color: colors.accent,
+          marginTop: Spacing.sm,
+        },
+        closeBtn: {
+          alignItems: 'center',
+          marginTop: Spacing.lg,
+          paddingVertical: Spacing.sm,
+        },
+        closeBtnText: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.sm,
+          color: colors.muted,
+        },
+      }),
+    [colors],
+  );
+}

@@ -1,7 +1,9 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View, Text, StyleSheet, Image} from 'react-native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {Colors, Fonts, FontSizes, Spacing} from '../theme';
+import {useColors} from '../contexts/ThemeContext';
+import type {ColorScheme} from '../theme/colors';
+import {Fonts, FontSizes, Spacing} from '../theme';
 import NintendoButton from '../components/NintendoButton';
 import NintendoCard from '../components/NintendoCard';
 
@@ -10,6 +12,9 @@ type Props = {
 };
 
 export default function EmailConfirmScreen({navigation}: Props) {
+  const colors = useColors();
+  const styles = useStyles(colors);
+
   return (
     <View style={styles.container}>
       <NintendoCard style={styles.card}>
@@ -32,37 +37,43 @@ export default function EmailConfirmScreen({navigation}: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-    justifyContent: 'center',
-    padding: Spacing['2xl'],
-  },
-  card: {
-    padding: Spacing['3xl'],
-    alignItems: 'center',
-  },
-  icon: {
-    width: 48,
-    height: 48,
-    marginBottom: Spacing.lg,
-  },
-  title: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.lg,
-    color: Colors.foreground,
-    marginBottom: Spacing.sm,
-  },
-  description: {
-    fontFamily: Fonts.regular,
-    fontSize: FontSizes.sm,
-    color: Colors.muted,
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: Spacing.xl,
-  },
-  button: {
-    alignSelf: 'stretch',
-  },
-});
+function useStyles(colors: ColorScheme) {
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: colors.background,
+          justifyContent: 'center',
+          padding: Spacing['2xl'],
+        },
+        card: {
+          padding: Spacing['3xl'],
+          alignItems: 'center',
+        },
+        icon: {
+          width: 48,
+          height: 48,
+          marginBottom: Spacing.lg,
+        },
+        title: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.lg,
+          color: colors.foreground,
+          marginBottom: Spacing.sm,
+        },
+        description: {
+          fontFamily: Fonts.regular,
+          fontSize: FontSizes.sm,
+          color: colors.muted,
+          textAlign: 'center',
+          lineHeight: 20,
+          marginBottom: Spacing.xl,
+        },
+        button: {
+          alignSelf: 'stretch',
+        },
+      }),
+    [colors],
+  );
+}

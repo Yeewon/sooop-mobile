@@ -110,6 +110,16 @@ export function useAuth() {
     setProfile(prev => (prev ? {...prev, allow_knocks: allowKnocks} : prev));
   };
 
+  const updateReminderHour = async (hour: number) => {
+    if (!user) throw new Error('로그인이 필요합니다');
+    const {error} = await supabase
+      .from('profiles')
+      .update({reminder_hour: hour})
+      .eq('id', user.id);
+    if (error) throw error;
+    setProfile(prev => (prev ? {...prev, reminder_hour: hour} : prev));
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -126,5 +136,6 @@ export function useAuth() {
     updateNickname,
     updateAvatar,
     updateAllowKnocks,
+    updateReminderHour,
   };
 }

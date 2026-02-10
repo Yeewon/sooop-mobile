@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useMemo} from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,9 @@ import {
   ScrollView,
 } from 'react-native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {Colors, Fonts, FontSizes, Spacing} from '../theme';
+import {useColors} from '../contexts/ThemeContext';
+import type {ColorScheme} from '../theme/colors';
+import {Fonts, FontSizes, Spacing} from '../theme';
 import NintendoButton from '../components/NintendoButton';
 import NintendoInput from '../components/NintendoInput';
 import NintendoCard from '../components/NintendoCard';
@@ -48,6 +50,8 @@ export default function LoginScreen({navigation}: Props) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const {signIn} = useAuthContext();
+  const colors = useColors();
+  const styles = useStyles(colors);
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -131,73 +135,79 @@ export default function LoginScreen({navigation}: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: Spacing['2xl'],
-  },
-  logoBox: {
-    alignItems: 'center',
-    marginBottom: Spacing['3xl'],
-  },
-  logoCard: {
-    paddingHorizontal: Spacing['2xl'],
-    paddingVertical: Spacing.xl,
-    alignItems: 'center',
-    marginBottom: Spacing.lg,
-  },
-  logoIcon: {
-    width: 56,
-    height: 56,
-  },
-  subtitle: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.sm,
-    color: Colors.muted,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  formCard: {
-    padding: Spacing.xl,
-    gap: Spacing.md,
-  },
-  passwordWrap: {
-    position: 'relative',
-  },
-  passwordInput: {
-    paddingRight: 56,
-  },
-  eyeBtn: {
-    position: 'absolute',
-    right: 12,
-    top: 0,
-    bottom: 0,
-    justifyContent: 'center',
-  },
-  eyeText: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.xs,
-    color: Colors.muted,
-  },
-  errorText: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.sm,
-    color: Colors.accent,
-    textAlign: 'center',
-  },
-  submitButton: {
-    marginTop: Spacing.sm,
-  },
-  switchText: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.sm,
-    color: Colors.muted,
-    textAlign: 'center',
-    marginTop: Spacing.xl,
-  },
-});
+function useStyles(colors: ColorScheme) {
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: colors.background,
+        },
+        scrollContent: {
+          flexGrow: 1,
+          justifyContent: 'center',
+          padding: Spacing['2xl'],
+        },
+        logoBox: {
+          alignItems: 'center',
+          marginBottom: Spacing['3xl'],
+        },
+        logoCard: {
+          paddingHorizontal: Spacing['2xl'],
+          paddingVertical: Spacing.xl,
+          alignItems: 'center',
+          marginBottom: Spacing.lg,
+        },
+        logoIcon: {
+          width: 56,
+          height: 56,
+        },
+        subtitle: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.sm,
+          color: colors.muted,
+          textAlign: 'center',
+          lineHeight: 22,
+        },
+        formCard: {
+          padding: Spacing.xl,
+          gap: Spacing.md,
+        },
+        passwordWrap: {
+          position: 'relative',
+        },
+        passwordInput: {
+          paddingRight: 56,
+        },
+        eyeBtn: {
+          position: 'absolute',
+          right: 12,
+          top: 0,
+          bottom: 0,
+          justifyContent: 'center',
+        },
+        eyeText: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.xs,
+          color: colors.muted,
+        },
+        errorText: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.sm,
+          color: colors.accent,
+          textAlign: 'center',
+        },
+        submitButton: {
+          marginTop: Spacing.sm,
+        },
+        switchText: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.sm,
+          color: colors.muted,
+          textAlign: 'center',
+          marginTop: Spacing.xl,
+        },
+      }),
+    [colors],
+  );
+}

@@ -1,6 +1,8 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {Text, StyleSheet, Pressable} from 'react-native';
-import {Colors, Fonts, FontSizes, Spacing} from '../theme';
+import {useColors} from '../contexts/ThemeContext';
+import type {ColorScheme} from '../theme/colors';
+import {Fonts, FontSizes, Spacing} from '../theme';
 
 interface ToastProps {
   message: string;
@@ -15,6 +17,9 @@ export default function Toast({
   onDismiss,
   duration = 2500,
 }: ToastProps) {
+  const colors = useColors();
+  const styles = useStyles(colors);
+
   useEffect(() => {
     const timer = setTimeout(onDismiss, duration);
     return () => clearTimeout(timer);
@@ -22,10 +27,8 @@ export default function Toast({
 
   const bgColor =
     type === 'success'
-      ? Colors.nintendoGreen
-      : type === 'error'
-        ? Colors.foreground
-        : Colors.foreground;
+      ? colors.nintendoGreen
+      : colors.foreground;
 
   return (
     <Pressable
@@ -36,21 +39,27 @@ export default function Toast({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    bottom: 50,
-    alignSelf: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm + 2,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    zIndex: 999,
-  },
-  text: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.xs,
-    color: '#FFFFFF',
-  },
-});
+function useStyles(colors: ColorScheme) {
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          position: 'absolute',
+          bottom: 50,
+          alignSelf: 'center',
+          paddingHorizontal: Spacing.lg,
+          paddingVertical: Spacing.sm + 2,
+          borderRadius: 20,
+          borderWidth: 2,
+          borderColor: colors.border,
+          zIndex: 999,
+        },
+        text: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.xs,
+          color: '#FFFFFF',
+        },
+      }),
+    [colors],
+  );
+}

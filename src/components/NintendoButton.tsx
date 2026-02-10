@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {
   Pressable,
   Text,
@@ -8,7 +8,9 @@ import {
   Image,
   ImageSourcePropType,
 } from 'react-native';
-import {Colors, Fonts} from '../theme';
+import {useColors} from '../contexts/ThemeContext';
+import type {ColorScheme} from '../theme/colors';
+import {Fonts} from '../theme';
 
 interface NintendoButtonProps {
   title: string;
@@ -33,19 +35,22 @@ export default function NintendoButton({
   disabled = false,
   small = false,
 }: NintendoButtonProps) {
+  const colors = useColors();
+  const styles = useStyles(colors);
+
   const bgColor =
     variant === 'accent'
-      ? Colors.accent
+      ? colors.accent
       : variant === 'blue'
-        ? Colors.nintendoBlue
+        ? colors.nintendoBlue
         : variant === 'yellow'
-          ? Colors.nintendoYellow
+          ? colors.nintendoYellow
           : variant === 'green'
-            ? Colors.nintendoGreen
-            : Colors.cardBg;
+            ? colors.nintendoGreen
+            : colors.cardBg;
 
   const txtColor =
-    variant === 'muted' ? Colors.muted : Colors.white;
+    variant === 'muted' ? colors.muted : colors.white;
 
   return (
     <Pressable
@@ -76,50 +81,56 @@ export default function NintendoButton({
   );
 }
 
-const styles = StyleSheet.create({
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderWidth: 3,
-    borderColor: Colors.shadowColor,
-    borderRadius: 12,
-    shadowColor: Colors.shadowColor,
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 4,
-  },
-  buttonSm: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderWidth: 2,
-    borderColor: Colors.shadowColor,
-    borderRadius: 10,
-    shadowColor: Colors.shadowColor,
-    shadowOffset: {width: 0, height: 3},
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 3,
-  },
-  pressed: {
-    transform: [{translateY: 4}],
-    shadowOffset: {width: 0, height: 0},
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-  text: {
-    fontFamily: Fonts.bold,
-    fontSize: 14,
-  },
-  textSm: {
-    fontFamily: Fonts.bold,
-    fontSize: 12,
-  },
-});
+function useStyles(colors: ColorScheme) {
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        button: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingVertical: 12,
+          paddingHorizontal: 20,
+          borderWidth: 3,
+          borderColor: colors.shadowColor,
+          borderRadius: 12,
+          shadowColor: colors.shadowColor,
+          shadowOffset: {width: 0, height: 4},
+          shadowOpacity: 1,
+          shadowRadius: 0,
+          elevation: 4,
+        },
+        buttonSm: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingVertical: 6,
+          paddingHorizontal: 12,
+          borderWidth: 2,
+          borderColor: colors.shadowColor,
+          borderRadius: 10,
+          shadowColor: colors.shadowColor,
+          shadowOffset: {width: 0, height: 3},
+          shadowOpacity: 1,
+          shadowRadius: 0,
+          elevation: 3,
+        },
+        pressed: {
+          transform: [{translateY: 4}],
+          shadowOffset: {width: 0, height: 0},
+        },
+        disabled: {
+          opacity: 0.5,
+        },
+        text: {
+          fontFamily: Fonts.bold,
+          fontSize: 14,
+        },
+        textSm: {
+          fontFamily: Fonts.bold,
+          fontSize: 12,
+        },
+      }),
+    [colors],
+  );
+}

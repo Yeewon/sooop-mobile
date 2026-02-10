@@ -40,9 +40,27 @@ export function useNotifications(userId: string | undefined) {
       console.log('[FCM] Foreground message:', remoteMessage.notification?.title);
     });
 
+    // 설정에서 돌아왔을 때 권한이 부여됐으면 토큰 등록
+    const appStateSub = AppState.addEventListener('change', async state => {
+      if (state === 'active' && userId && !tokenSaved.current) {
+        const authStatus = await messaging().hasPermission();
+        const enabled =
+          authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+          authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+        if (enabled) {
+          const token = await messaging().getToken();
+          if (token) {
+            await saveToken(userId, token);
+            tokenSaved.current = true;
+          }
+        }
+      }
+    });
+
     return () => {
       unsubRefresh();
       unsubMessage();
+      appStateSub.remove();
     };
   }, [userId]);
 }

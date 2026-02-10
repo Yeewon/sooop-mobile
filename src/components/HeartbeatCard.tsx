@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,9 @@ import {
 } from 'react-native';
 import {FriendWithStatus} from '../shared/types';
 import {KNOCK_ICONS} from '../shared/constants';
-import {Colors, Fonts, FontSizes, Spacing} from '../theme';
+import {useColors} from '../contexts/ThemeContext';
+import type {ColorScheme} from '../theme/colors';
+import {Fonts, FontSizes, Spacing} from '../theme';
 import PixelAvatar from './PixelAvatar';
 import NintendoCard from './NintendoCard';
 import NintendoButton from './NintendoButton';
@@ -17,12 +19,15 @@ import NintendoButton from './NintendoButton';
 interface HeartbeatCardProps {
   friend: FriendWithStatus;
   onKnock: (knockId: string) => void;
-  onPhoto: () => void;
+  onPress: () => void;
   onKnockRequest: () => void;
   onLongPress?: () => void;
 }
 
-function getHeartbeatInfo(lastCheckin: string | null): {
+function getHeartbeatInfo(
+  lastCheckin: string | null,
+  colors: ColorScheme,
+): {
   icon: ImageSourcePropType;
   label: string;
   color: string;
@@ -31,7 +36,7 @@ function getHeartbeatInfo(lastCheckin: string | null): {
     return {
       icon: require('../assets/icons/computer.png'),
       label: '소식 없음',
-      color: Colors.muted,
+      color: colors.muted,
     };
   }
 
@@ -44,26 +49,26 @@ function getHeartbeatInfo(lastCheckin: string | null): {
     return {
       icon: require('../assets/icons/fish.png'),
       label: '산책 중',
-      color: Colors.nintendoYellow,
+      color: colors.nintendoYellow,
     };
   } else if (hoursAgo < 24) {
     return {
       icon: require('../assets/icons/ball.png'),
       label: '오늘 봤어',
-      color: Colors.accent,
+      color: colors.accent,
     };
   } else if (hoursAgo < 48) {
     return {
       icon: require('../assets/icons/computer.png'),
       label: '어제 왔었어',
-      color: Colors.nintendoGreen,
+      color: colors.nintendoGreen,
     };
   } else {
     const days = Math.floor(hoursAgo / 24);
     return {
       icon: require('../assets/icons/computer.png'),
       label: `${days}일째 안 보여`,
-      color: Colors.muted,
+      color: colors.muted,
     };
   }
 }
@@ -85,11 +90,13 @@ function formatTime(lastCheckin: string | null): string {
 export default function HeartbeatCard({
   friend,
   onKnock,
-  onPhoto,
+  onPress,
   onKnockRequest,
   onLongPress,
 }: HeartbeatCardProps) {
-  const heartbeat = getHeartbeatInfo(friend.last_checkin);
+  const colors = useColors();
+  const styles = useStyles(colors);
+  const heartbeat = getHeartbeatInfo(friend.last_checkin, colors);
   const isInactive = !friend.last_checkin;
 
   const myIcon = friend.my_last_knock_emoji
@@ -97,7 +104,7 @@ export default function HeartbeatCard({
     : null;
 
   return (
-    <Pressable onPress={onPhoto} onLongPress={onLongPress}>
+    <Pressable onPress={onPress} onLongPress={onLongPress}>
       {({pressed}) => (
         <NintendoCard
           style={{
@@ -156,46 +163,52 @@ export default function HeartbeatCard({
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    padding: Spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-  },
-  avatarWrap: {
-    position: 'relative',
-  },
-  statusIcon: {
-    width: 16,
-    height: 16,
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-    resizeMode: 'contain'
-  },
-  info: {
-    flex: 1,
-    minWidth: 0,
-  },
-  nickname: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.sm,
-    color: Colors.foreground,
-  },
-  statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs + 2,
-    marginTop: 2,
-  },
-  statusLabel: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.sm,
-  },
-  timeText: {
-    fontFamily: Fonts.regular,
-    fontSize: FontSizes.xs,
-    color: Colors.muted,
-  },
-});
+function useStyles(colors: ColorScheme) {
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        card: {
+          padding: Spacing.md,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: Spacing.md,
+        },
+        avatarWrap: {
+          position: 'relative',
+        },
+        statusIcon: {
+          width: 16,
+          height: 16,
+          position: 'absolute',
+          bottom: -2,
+          right: -2,
+          resizeMode: 'contain',
+        },
+        info: {
+          flex: 1,
+          minWidth: 0,
+        },
+        nickname: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.sm,
+          color: colors.foreground,
+        },
+        statusRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: Spacing.xs + 2,
+          marginTop: 2,
+        },
+        statusLabel: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.sm,
+        },
+        timeText: {
+          fontFamily: Fonts.regular,
+          fontSize: FontSizes.xs,
+          color: colors.muted,
+        },
+      }),
+    [colors],
+  );
+}

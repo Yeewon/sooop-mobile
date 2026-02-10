@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,14 +8,16 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {Colors, Fonts, FontSizes, Spacing} from '../theme';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useColors } from '../contexts/ThemeContext';
+import type { ColorScheme } from '../theme/colors';
+import { Fonts, FontSizes, Spacing } from '../theme';
 import NintendoButton from '../components/NintendoButton';
 import NintendoInput from '../components/NintendoInput';
 import NintendoCard from '../components/NintendoCard';
 import PixelAvatar from '../components/PixelAvatar';
-import {useAuthContext} from '../contexts/AuthContext';
-import {AvatarData} from '../shared/types';
+import { useAuthContext } from '../contexts/AuthContext';
+import { AvatarData } from '../shared/types';
 import {
   SKIN_COLORS,
   HAIR_COLORS,
@@ -51,7 +53,7 @@ type Props = {
   navigation: NativeStackNavigationProp<any>;
 };
 
-export default function SignUpScreen({navigation}: Props) {
+export default function SignUpScreen({ navigation }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
@@ -60,7 +62,9 @@ export default function SignUpScreen({navigation}: Props) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const {signUp} = useAuthContext();
+  const { signUp } = useAuthContext();
+  const colors = useColors();
+  const styles = useStyles(colors);
 
   const cycleOption = (
     key: 'hair' | 'eyes' | 'mouth' | 'clothes',
@@ -97,10 +101,12 @@ export default function SignUpScreen({navigation}: Props) {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled">
+        keyboardShouldPersistTaps="handled"
+      >
         <Text style={styles.title}>입주 신청</Text>
         <Text style={styles.subtitle}>마을에 살 캐릭터를 만들어봐</Text>
 
@@ -112,38 +118,54 @@ export default function SignUpScreen({navigation}: Props) {
 
           {/* 간단한 커스터마이징 */}
           <View style={styles.optionRow}>
-            <Pressable onPress={() => cycleOption('hair', HAIR_STYLES.length, -1)}>
+            <Pressable
+              onPress={() => cycleOption('hair', HAIR_STYLES.length, -1)}
+            >
               <Text style={styles.arrow}>◀</Text>
             </Pressable>
             <Text style={styles.optionLabel}>머리</Text>
-            <Pressable onPress={() => cycleOption('hair', HAIR_STYLES.length, 1)}>
+            <Pressable
+              onPress={() => cycleOption('hair', HAIR_STYLES.length, 1)}
+            >
               <Text style={styles.arrow}>▶</Text>
             </Pressable>
           </View>
           <View style={styles.optionRow}>
-            <Pressable onPress={() => cycleOption('eyes', EYE_STYLES.length, -1)}>
+            <Pressable
+              onPress={() => cycleOption('eyes', EYE_STYLES.length, -1)}
+            >
               <Text style={styles.arrow}>◀</Text>
             </Pressable>
             <Text style={styles.optionLabel}>눈</Text>
-            <Pressable onPress={() => cycleOption('eyes', EYE_STYLES.length, 1)}>
+            <Pressable
+              onPress={() => cycleOption('eyes', EYE_STYLES.length, 1)}
+            >
               <Text style={styles.arrow}>▶</Text>
             </Pressable>
           </View>
           <View style={styles.optionRow}>
-            <Pressable onPress={() => cycleOption('mouth', MOUTH_STYLES.length, -1)}>
+            <Pressable
+              onPress={() => cycleOption('mouth', MOUTH_STYLES.length, -1)}
+            >
               <Text style={styles.arrow}>◀</Text>
             </Pressable>
             <Text style={styles.optionLabel}>입</Text>
-            <Pressable onPress={() => cycleOption('mouth', MOUTH_STYLES.length, 1)}>
+            <Pressable
+              onPress={() => cycleOption('mouth', MOUTH_STYLES.length, 1)}
+            >
               <Text style={styles.arrow}>▶</Text>
             </Pressable>
           </View>
           <View style={styles.optionRow}>
-            <Pressable onPress={() => cycleOption('clothes', CLOTHES_STYLES.length, -1)}>
+            <Pressable
+              onPress={() => cycleOption('clothes', CLOTHES_STYLES.length, -1)}
+            >
               <Text style={styles.arrow}>◀</Text>
             </Pressable>
             <Text style={styles.optionLabel}>옷</Text>
-            <Pressable onPress={() => cycleOption('clothes', CLOTHES_STYLES.length, 1)}>
+            <Pressable
+              onPress={() => cycleOption('clothes', CLOTHES_STYLES.length, 1)}
+            >
               <Text style={styles.arrow}>▶</Text>
             </Pressable>
           </View>
@@ -155,10 +177,10 @@ export default function SignUpScreen({navigation}: Props) {
               {SKIN_COLORS.map(c => (
                 <Pressable
                   key={c}
-                  onPress={() => setAvatar(prev => ({...prev, skinColor: c}))}
+                  onPress={() => setAvatar(prev => ({ ...prev, skinColor: c }))}
                   style={[
                     styles.colorDot,
-                    {backgroundColor: c},
+                    { backgroundColor: c },
                     avatar.skinColor === c && styles.colorDotActive,
                   ]}
                 />
@@ -171,10 +193,10 @@ export default function SignUpScreen({navigation}: Props) {
               {HAIR_COLORS.map(c => (
                 <Pressable
                   key={c}
-                  onPress={() => setAvatar(prev => ({...prev, hairColor: c}))}
+                  onPress={() => setAvatar(prev => ({ ...prev, hairColor: c }))}
                   style={[
                     styles.colorDot,
-                    {backgroundColor: c},
+                    { backgroundColor: c },
                     avatar.hairColor === c && styles.colorDotActive,
                   ]}
                 />
@@ -188,11 +210,11 @@ export default function SignUpScreen({navigation}: Props) {
                 <Pressable
                   key={c}
                   onPress={() =>
-                    setAvatar(prev => ({...prev, clothesColor: c}))
+                    setAvatar(prev => ({ ...prev, clothesColor: c }))
                   }
                   style={[
                     styles.colorDot,
-                    {backgroundColor: c},
+                    { backgroundColor: c },
                     avatar.clothesColor === c && styles.colorDotActive,
                   ]}
                 />
@@ -203,12 +225,17 @@ export default function SignUpScreen({navigation}: Props) {
 
         {/* 입력 폼 */}
         <NintendoCard style={styles.formCard}>
-          <NintendoInput
-            placeholder="마을에서 부를 이름"
-            value={nickname}
-            onChangeText={setNickname}
-            maxLength={20}
-          />
+          <View>
+            <NintendoInput
+              placeholder="마을에서 부를 이름"
+              value={nickname}
+              onChangeText={setNickname}
+              maxLength={20}
+            />
+            <Text style={styles.inputHint}>
+              친구들이 알아볼 수 있는 이름으로 정해줘
+            </Text>
+          </View>
           <NintendoInput
             placeholder="이메일"
             value={email}
@@ -228,7 +255,8 @@ export default function SignUpScreen({navigation}: Props) {
             />
             <Pressable
               onPress={() => setShowPassword(prev => !prev)}
-              style={styles.eyeBtn}>
+              style={styles.eyeBtn}
+            >
               <Text style={styles.eyeText}>
                 {showPassword ? '숨김' : '보기'}
               </Text>
@@ -261,118 +289,131 @@ export default function SignUpScreen({navigation}: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    padding: Spacing['2xl'],
-    paddingTop: 60,
-  },
-  title: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.xl,
-    color: Colors.foreground,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontFamily: Fonts.regular,
-    fontSize: FontSizes.sm,
-    color: Colors.muted,
-    textAlign: 'center',
-    marginTop: Spacing.xs,
-    marginBottom: Spacing.xl,
-  },
-  avatarCard: {
-    padding: Spacing.lg,
-    marginBottom: Spacing.lg,
-  },
-  avatarPreview: {
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-  },
-  optionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.lg,
-    marginVertical: 4,
-  },
-  arrow: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.lg,
-    color: Colors.muted,
-    padding: Spacing.sm,
-  },
-  optionLabel: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.sm,
-    color: Colors.foreground,
-    width: 40,
-    textAlign: 'center',
-  },
-  colorSection: {
-    marginTop: Spacing.sm,
-  },
-  colorLabel: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.xs,
-    color: Colors.muted,
-    marginBottom: 4,
-  },
-  colorRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  colorDot: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  colorDotActive: {
-    borderColor: Colors.foreground,
-  },
-  formCard: {
-    padding: Spacing.xl,
-    gap: Spacing.md,
-  },
-  passwordWrap: {
-    position: 'relative',
-  },
-  passwordInput: {
-    paddingRight: 56,
-  },
-  eyeBtn: {
-    position: 'absolute',
-    right: 12,
-    top: 0,
-    bottom: 0,
-    justifyContent: 'center',
-  },
-  eyeText: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.xs,
-    color: Colors.muted,
-  },
-  errorText: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.sm,
-    color: Colors.accent,
-    textAlign: 'center',
-  },
-  submitButton: {
-    marginTop: Spacing.sm,
-  },
-  switchText: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.sm,
-    color: Colors.muted,
-    textAlign: 'center',
-    marginTop: Spacing.xl,
-    marginBottom: Spacing['3xl'],
-  },
-});
+function useStyles(colors: ColorScheme) {
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: colors.background,
+        },
+        scrollContent: {
+          flexGrow: 1,
+          padding: Spacing['2xl'],
+          paddingTop: 60,
+        },
+        title: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.xl,
+          color: colors.foreground,
+          textAlign: 'center',
+        },
+        subtitle: {
+          fontFamily: Fonts.regular,
+          fontSize: FontSizes.sm,
+          color: colors.muted,
+          textAlign: 'center',
+          marginTop: Spacing.xs,
+          marginBottom: Spacing.xl,
+        },
+        avatarCard: {
+          padding: Spacing.lg,
+          marginBottom: Spacing.lg,
+        },
+        avatarPreview: {
+          alignItems: 'center',
+          marginBottom: Spacing.md,
+        },
+        optionRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: Spacing.lg,
+          marginVertical: 4,
+        },
+        arrow: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.lg,
+          color: colors.muted,
+          padding: Spacing.sm,
+        },
+        optionLabel: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.sm,
+          color: colors.foreground,
+          width: 40,
+          textAlign: 'center',
+        },
+        colorSection: {
+          marginTop: Spacing.sm,
+        },
+        colorLabel: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.xs,
+          color: colors.muted,
+          marginBottom: 4,
+        },
+        colorRow: {
+          flexDirection: 'row',
+          gap: Spacing.sm,
+        },
+        colorDot: {
+          width: 24,
+          height: 24,
+          borderRadius: 12,
+          borderWidth: 2,
+          borderColor: 'transparent',
+        },
+        colorDotActive: {
+          borderColor: colors.foreground,
+        },
+        formCard: {
+          padding: Spacing.xl,
+          gap: Spacing.md,
+        },
+        inputHint: {
+          fontFamily: Fonts.regular,
+          fontSize: FontSizes.sm,
+          color: colors.muted,
+          marginTop: Spacing.xs,
+          paddingHorizontal: 4,
+        },
+        passwordWrap: {
+          position: 'relative',
+        },
+        passwordInput: {
+          paddingRight: 56,
+        },
+        eyeBtn: {
+          position: 'absolute',
+          right: 12,
+          top: 0,
+          bottom: 0,
+          justifyContent: 'center',
+        },
+        eyeText: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.xs,
+          color: colors.muted,
+        },
+        errorText: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.sm,
+          color: colors.accent,
+          textAlign: 'center',
+        },
+        submitButton: {
+          marginTop: Spacing.sm,
+        },
+        switchText: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.sm,
+          color: colors.muted,
+          textAlign: 'center',
+          marginTop: Spacing.xl,
+          marginBottom: Spacing['3xl'],
+        },
+      }),
+    [colors],
+  );
+}

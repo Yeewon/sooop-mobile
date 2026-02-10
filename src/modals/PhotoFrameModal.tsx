@@ -1,11 +1,13 @@
-import React, {useRef, useState} from 'react';
+import React, {useState, useMemo} from 'react';
 import {View, Text, StyleSheet, Pressable, Image, ScrollView} from 'react-native';
 import {AvatarData} from '../shared/types';
 import {FRAME_BACKGROUNDS} from '../shared/constants';
 import PixelAvatar from '../components/PixelAvatar';
 import NintendoButton from '../components/NintendoButton';
 import NintendoCard from '../components/NintendoCard';
-import {Colors, Fonts, FontSizes, Spacing} from '../theme';
+import {Fonts, FontSizes, Spacing} from '../theme';
+import {useColors} from '../contexts/ThemeContext';
+import type {ColorScheme} from '../theme/colors';
 
 interface PhotoFrameModalProps {
   myAvatar: AvatarData | null;
@@ -22,6 +24,8 @@ export default function PhotoFrameModal({
   friendName,
   onClose,
 }: PhotoFrameModalProps) {
+  const colors = useColors();
+  const styles = useStyles(colors);
   const [bgIndex, setBgIndex] = useState(0);
   const selectedBg = FRAME_BACKGROUNDS[bgIndex];
 
@@ -68,7 +72,7 @@ export default function PhotoFrameModal({
               <Text
                 style={[
                   styles.bgBtnText,
-                  {color: bgIndex === i ? '#FFF' : Colors.muted},
+                  {color: bgIndex === i ? '#FFF' : colors.muted},
                 ]}>
                 {bg.name}
               </Text>
@@ -132,106 +136,112 @@ export default function PhotoFrameModal({
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 200,
-    padding: Spacing.lg,
-  },
-  card: {
-    backgroundColor: Colors.cardBg,
-    borderRadius: 16,
-    borderWidth: 3,
-    borderColor: Colors.border,
-    padding: Spacing.lg,
-    width: '100%',
-    maxWidth: 360,
-    maxHeight: '90%',
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  titleIcon: {width: 24, height: 24},
-  title: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.lg,
-    color: Colors.foreground,
-  },
-  bgPicker: {
-    marginBottom: Spacing.md,
-  },
-  bgPickerContent: {
-    gap: Spacing.sm,
-  },
-  bgBtn: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 6,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: Colors.border,
-  },
-  bgBtnActive: {backgroundColor: Colors.accent},
-  bgBtnInactive: {backgroundColor: Colors.cardBg},
-  bgBtnText: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.xs,
-  },
-  frame: {
-    borderWidth: 4,
-    borderColor: Colors.foreground,
-    borderRadius: 16,
-    padding: Spacing.xl,
-    marginBottom: Spacing.lg,
-  },
-  frameHeader: {
-    fontFamily: Fonts.bold,
-    fontSize: 10,
-    textAlign: 'center',
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-    marginBottom: Spacing.md,
-  },
-  avatarRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: Spacing.xl,
-    marginBottom: Spacing.md,
-  },
-  avatarCol: {
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  avatarFrame: {
-    padding: Spacing.sm,
-    backgroundColor: Colors.cardBg,
-  },
-  avatarName: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.xs,
-  },
-  frameDivider: {
-    height: 2,
-    marginBottom: Spacing.md,
-  },
-  frameDate: {
-    fontFamily: Fonts.bold,
-    fontSize: 10,
-    textAlign: 'center',
-  },
-  btnRow: {
-    flexDirection: 'row',
-    gap: Spacing.md,
-  },
-  flex1: {flex: 1},
-});
+function useStyles(colors: ColorScheme) {
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        overlay: {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 200,
+          padding: Spacing.lg,
+        },
+        card: {
+          backgroundColor: colors.cardBg,
+          borderRadius: 16,
+          borderWidth: 3,
+          borderColor: colors.border,
+          padding: Spacing.lg,
+          width: '100%',
+          maxWidth: 360,
+          maxHeight: '90%',
+        },
+        titleRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: Spacing.sm,
+          marginBottom: Spacing.md,
+        },
+        titleIcon: {width: 24, height: 24},
+        title: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.lg,
+          color: colors.foreground,
+        },
+        bgPicker: {
+          marginBottom: Spacing.md,
+        },
+        bgPickerContent: {
+          gap: Spacing.sm,
+        },
+        bgBtn: {
+          paddingHorizontal: Spacing.md,
+          paddingVertical: 6,
+          borderRadius: 10,
+          borderWidth: 2,
+          borderColor: colors.border,
+        },
+        bgBtnActive: {backgroundColor: colors.accent},
+        bgBtnInactive: {backgroundColor: colors.cardBg},
+        bgBtnText: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.xs,
+        },
+        frame: {
+          borderWidth: 4,
+          borderColor: colors.foreground,
+          borderRadius: 16,
+          padding: Spacing.xl,
+          marginBottom: Spacing.lg,
+        },
+        frameHeader: {
+          fontFamily: Fonts.bold,
+          fontSize: 10,
+          textAlign: 'center',
+          textTransform: 'uppercase',
+          letterSpacing: 2,
+          marginBottom: Spacing.md,
+        },
+        avatarRow: {
+          flexDirection: 'row',
+          justifyContent: 'center',
+          gap: Spacing.xl,
+          marginBottom: Spacing.md,
+        },
+        avatarCol: {
+          alignItems: 'center',
+          gap: Spacing.sm,
+        },
+        avatarFrame: {
+          padding: Spacing.sm,
+          backgroundColor: colors.cardBg,
+        },
+        avatarName: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.xs,
+        },
+        frameDivider: {
+          height: 2,
+          marginBottom: Spacing.md,
+        },
+        frameDate: {
+          fontFamily: Fonts.bold,
+          fontSize: 10,
+          textAlign: 'center',
+        },
+        btnRow: {
+          flexDirection: 'row',
+          gap: Spacing.md,
+        },
+        flex1: {flex: 1},
+      }),
+    [colors],
+  );
+}

@@ -15,6 +15,7 @@ export interface Profile {
   created_at: string;
   avatar_data: AvatarData | null;
   allow_knocks: boolean;
+  reminder_hour: number;
   role: 'user' | 'admin';
 }
 

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useMemo} from 'react';
 import {
   View,
   Text,
@@ -21,7 +21,9 @@ import {
 import PixelAvatar from '../components/PixelAvatar';
 import NintendoButton from '../components/NintendoButton';
 import NintendoCard from '../components/NintendoCard';
-import {Colors, Fonts, FontSizes, Spacing} from '../theme';
+import {Fonts, FontSizes, Spacing} from '../theme';
+import {useColors} from '../contexts/ThemeContext';
+import type {ColorScheme} from '../theme/colors';
 
 interface AvatarBuilderModalProps {
   currentAvatar: AvatarData | null;
@@ -36,6 +38,8 @@ export default function AvatarBuilderModal({
   onSave,
   onClose,
 }: AvatarBuilderModalProps) {
+  const colors = useColors();
+  const styles = useStyles(colors);
   const [avatar, setAvatar] = useState<AvatarData>(
     currentAvatar || DEFAULT_AVATAR,
   );
@@ -140,7 +144,7 @@ export default function AvatarBuilderModal({
               <Text
                 style={[
                   styles.tabText,
-                  {color: tab === t.key ? '#FFF' : Colors.muted},
+                  {color: tab === t.key ? '#FFF' : colors.muted},
                 ]}>
                 {t.label}
               </Text>
@@ -205,131 +209,137 @@ export default function AvatarBuilderModal({
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 200,
-    padding: Spacing.lg,
-  },
-  card: {
-    backgroundColor: Colors.cardBg,
-    borderRadius: 16,
-    borderWidth: 3,
-    borderColor: Colors.border,
-    padding: Spacing.lg,
-    width: '100%',
-    maxWidth: 360,
-    maxHeight: '90%',
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  titleIcon: {width: 24, height: 24},
-  title: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.lg,
-    color: Colors.foreground,
-  },
-  previewWrap: {
-    alignItems: 'center',
-    marginBottom: Spacing.lg,
-  },
-  previewCard: {
-    padding: Spacing.md,
-    backgroundColor: Colors.background,
-  },
-  tabRow: {
-    flexDirection: 'row',
-    gap: Spacing.xs,
-    marginBottom: Spacing.md,
-  },
-  tabBtn: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    alignItems: 'center',
-  },
-  tabBtnActive: {
-    backgroundColor: Colors.accent,
-  },
-  tabBtnInactive: {
-    backgroundColor: Colors.cardBg,
-  },
-  tabText: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.xs,
-  },
-  contentScroll: {
-    maxHeight: 200,
-    marginBottom: Spacing.md,
-  },
-  styleGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.md,
-    justifyContent: 'center',
-  },
-  styleItem: {
-    padding: Spacing.sm,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    backgroundColor: Colors.cardBg,
-    alignItems: 'center',
-  },
-  styleItemActive: {
-    borderColor: Colors.accent,
-    backgroundColor: Colors.background,
-  },
-  styleName: {
-    fontFamily: Fonts.bold,
-    fontSize: 10,
-    color: Colors.muted,
-    marginTop: 4,
-  },
-  colorSection: {
-    marginBottom: Spacing.lg,
-  },
-  colorLabel: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.xs,
-    color: Colors.muted,
-    marginBottom: Spacing.sm,
-  },
-  colorRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-  },
-  colorDot: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    borderWidth: 3,
-    borderColor: Colors.border,
-  },
-  colorDotActive: {
-    borderColor: Colors.accent,
-    shadowColor: Colors.accent,
-    shadowOffset: {width: 0, height: 0},
-    shadowOpacity: 0.5,
-    shadowRadius: 4,
-  },
-  btnRow: {
-    flexDirection: 'row',
-    gap: Spacing.md,
-  },
-  flex1: {flex: 1},
-});
+function useStyles(colors: ColorScheme) {
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        overlay: {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 200,
+          padding: Spacing.lg,
+        },
+        card: {
+          backgroundColor: colors.cardBg,
+          borderRadius: 16,
+          borderWidth: 3,
+          borderColor: colors.border,
+          padding: Spacing.lg,
+          width: '100%',
+          maxWidth: 360,
+          maxHeight: '90%',
+        },
+        titleRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: Spacing.sm,
+          marginBottom: Spacing.md,
+        },
+        titleIcon: {width: 24, height: 24},
+        title: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.lg,
+          color: colors.foreground,
+        },
+        previewWrap: {
+          alignItems: 'center',
+          marginBottom: Spacing.lg,
+        },
+        previewCard: {
+          padding: Spacing.md,
+          backgroundColor: colors.background,
+        },
+        tabRow: {
+          flexDirection: 'row',
+          gap: Spacing.xs,
+          marginBottom: Spacing.md,
+        },
+        tabBtn: {
+          flex: 1,
+          paddingVertical: 8,
+          borderRadius: 10,
+          borderWidth: 2,
+          borderColor: colors.border,
+          alignItems: 'center',
+        },
+        tabBtnActive: {
+          backgroundColor: colors.accent,
+        },
+        tabBtnInactive: {
+          backgroundColor: colors.cardBg,
+        },
+        tabText: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.xs,
+        },
+        contentScroll: {
+          maxHeight: 200,
+          marginBottom: Spacing.md,
+        },
+        styleGrid: {
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          gap: Spacing.md,
+          justifyContent: 'center',
+        },
+        styleItem: {
+          padding: Spacing.sm,
+          borderRadius: 12,
+          borderWidth: 2,
+          borderColor: colors.border,
+          backgroundColor: colors.cardBg,
+          alignItems: 'center',
+        },
+        styleItemActive: {
+          borderColor: colors.accent,
+          backgroundColor: colors.background,
+        },
+        styleName: {
+          fontFamily: Fonts.bold,
+          fontSize: 10,
+          color: colors.muted,
+          marginTop: 4,
+        },
+        colorSection: {
+          marginBottom: Spacing.lg,
+        },
+        colorLabel: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.xs,
+          color: colors.muted,
+          marginBottom: Spacing.sm,
+        },
+        colorRow: {
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          gap: Spacing.sm,
+        },
+        colorDot: {
+          width: 36,
+          height: 36,
+          borderRadius: 18,
+          borderWidth: 3,
+          borderColor: colors.border,
+        },
+        colorDotActive: {
+          borderColor: colors.accent,
+          shadowColor: colors.accent,
+          shadowOffset: {width: 0, height: 0},
+          shadowOpacity: 0.5,
+          shadowRadius: 4,
+        },
+        btnRow: {
+          flexDirection: 'row',
+          gap: Spacing.md,
+        },
+        flex1: {flex: 1},
+      }),
+    [colors],
+  );
+}

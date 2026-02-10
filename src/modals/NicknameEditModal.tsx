@@ -1,6 +1,8 @@
-import React, {useState} from 'react';
+import React, {useState, useMemo} from 'react';
 import {View, Text, TextInput, StyleSheet, Pressable, Image} from 'react-native';
-import {Colors, Fonts, FontSizes, Spacing} from '../theme';
+import {Fonts, FontSizes, Spacing} from '../theme';
+import {useColors} from '../contexts/ThemeContext';
+import type {ColorScheme} from '../theme/colors';
 import NintendoButton from '../components/NintendoButton';
 
 interface NicknameEditModalProps {
@@ -14,6 +16,8 @@ export default function NicknameEditModal({
   onSave,
   onClose,
 }: NicknameEditModalProps) {
+  const colors = useColors();
+  const styles = useStyles(colors);
   const [nickname, setNickname] = useState(currentNickname);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -48,7 +52,7 @@ export default function NicknameEditModal({
           value={nickname}
           onChangeText={setNickname}
           placeholder="새로운 이름"
-          placeholderTextColor={Colors.muted}
+          placeholderTextColor={colors.muted}
           maxLength={20}
         />
         <Text style={styles.hint}>마을에서 이웃들이 부를 이름이야</Text>
@@ -75,68 +79,74 @@ export default function NicknameEditModal({
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 200,
-    padding: Spacing.lg,
-  },
-  card: {
-    backgroundColor: Colors.cardBg,
-    borderRadius: 16,
-    borderWidth: 3,
-    borderColor: Colors.border,
-    padding: Spacing.xl,
-    width: '100%',
-    maxWidth: 320,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.lg,
-  },
-  titleIcon: {width: 24, height: 24},
-  title: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.lg,
-    color: Colors.foreground,
-  },
-  input: {
-    borderWidth: 3,
-    borderColor: Colors.border,
-    borderRadius: 12,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm + 2,
-    fontFamily: Fonts.regular,
-    fontSize: FontSizes.sm,
-    color: Colors.foreground,
-    backgroundColor: Colors.background,
-    marginBottom: Spacing.xs,
-  },
-  hint: {
-    fontFamily: Fonts.regular,
-    fontSize: FontSizes.xs,
-    color: Colors.muted,
-    marginBottom: Spacing.lg,
-    paddingHorizontal: 4,
-  },
-  error: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.sm,
-    color: Colors.accent,
-    marginBottom: Spacing.md,
-  },
-  btnRow: {
-    flexDirection: 'row',
-    gap: Spacing.md,
-  },
-  flex1: {flex: 1},
-});
+function useStyles(colors: ColorScheme) {
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        overlay: {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 200,
+          padding: Spacing.lg,
+        },
+        card: {
+          backgroundColor: colors.cardBg,
+          borderRadius: 16,
+          borderWidth: 3,
+          borderColor: colors.border,
+          padding: Spacing.xl,
+          width: '100%',
+          maxWidth: 320,
+        },
+        titleRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: Spacing.sm,
+          marginBottom: Spacing.lg,
+        },
+        titleIcon: {width: 24, height: 24},
+        title: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.lg,
+          color: colors.foreground,
+        },
+        input: {
+          borderWidth: 3,
+          borderColor: colors.border,
+          borderRadius: 12,
+          paddingHorizontal: Spacing.md,
+          paddingVertical: Spacing.sm + 2,
+          fontFamily: Fonts.regular,
+          fontSize: FontSizes.sm,
+          color: colors.foreground,
+          backgroundColor: colors.background,
+          marginBottom: Spacing.xs,
+        },
+        hint: {
+          fontFamily: Fonts.regular,
+          fontSize: FontSizes.sm,
+          color: colors.muted,
+          marginBottom: Spacing.lg,
+          paddingHorizontal: 4,
+        },
+        error: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.sm,
+          color: colors.accent,
+          marginBottom: Spacing.md,
+        },
+        btnRow: {
+          flexDirection: 'row',
+          gap: Spacing.md,
+        },
+        flex1: {flex: 1},
+      }),
+    [colors],
+  );
+}
