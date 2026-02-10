@@ -29,7 +29,7 @@ export default function InviteModal({
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const inviteLink = `sooop://invite/${myInviteCode}`;
+  const inviteLink = `https://sooop-hi.vercel.app/invite/${myInviteCode}`;
 
   const handleCopy = () => {
     Clipboard.setString(inviteLink);
