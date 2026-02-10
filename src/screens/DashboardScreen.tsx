@@ -17,6 +17,7 @@ import {
   Linking,
   AppState,
   KeyboardAvoidingView,
+  Keyboard,
   Platform,
 } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
@@ -155,6 +156,21 @@ export default function DashboardScreen() {
     });
     return () => sub.remove();
   }, [checkPushPermission]);
+
+  // 키보드 높이 감지
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', e =>
+      setKeyboardHeight(e.endCoordinates.height),
+    );
+    const hideSub = Keyboard.addListener('keyboardDidHide', () =>
+      setKeyboardHeight(0),
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const handleTogglePush = async () => {
     if (pushEnabled) {
@@ -1200,6 +1216,7 @@ export default function DashboardScreen() {
           message={knockToast}
           type="success"
           onDismiss={() => setKnockToast(null)}
+          bottomOffset={keyboardHeight > 0 ? keyboardHeight + 10 : undefined}
         />
       )}
     </KeyboardAvoidingView>

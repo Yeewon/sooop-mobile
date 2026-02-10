@@ -1,6 +1,6 @@
-import {useEffect, useRef, useCallback, useState} from 'react';
-import {supabase} from '../../lib/supabase';
-import {WORLD_WIDTH, WORLD_HEIGHT} from './villageConstants';
+import { useEffect, useRef, useCallback, useState } from 'react';
+import { supabase } from '../../lib/supabase';
+import { WORLD_WIDTH, WORLD_HEIGHT } from './villageConstants';
 
 export interface LivePosition {
   x: number;
@@ -32,9 +32,9 @@ export function useVillageRealtime({
   enabled,
 }: UseVillageRealtimeOptions) {
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
-  const [livePositions, setLivePositions] = useState<
-    Map<string, LivePosition>
-  >(new Map());
+  const [livePositions, setLivePositions] = useState<Map<string, LivePosition>>(
+    new Map(),
+  );
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [joinedUserId, setJoinedUserId] = useState<string | null>(null);
   const [leftUserId, setLeftUserId] = useState<string | null>(null);
@@ -48,11 +48,11 @@ export function useVillageRealtime({
     hasInitialSync.current = false;
 
     const channel = supabase.channel('village', {
-      config: {presence: {key: userId}},
+      config: { presence: { key: userId } },
     });
 
     channel
-      .on('presence', {event: 'sync'}, () => {
+      .on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState();
         const online = new Set<string>();
         for (const key of Object.keys(state)) {
@@ -63,21 +63,21 @@ export function useVillageRealtime({
         setOnlineUsers(online);
         hasInitialSync.current = true;
       })
-      .on('presence', {event: 'join'}, ({key}) => {
+      .on('presence', { event: 'join' }, ({ key }) => {
         if (!hasInitialSync.current) return;
         if (key !== userId) {
           setJoinedUserId(key);
           setTimeout(() => setJoinedUserId(null), 3000);
         }
       })
-      .on('presence', {event: 'leave'}, ({key}) => {
+      .on('presence', { event: 'leave' }, ({ key }) => {
         if (!hasInitialSync.current) return;
         if (key !== userId) {
           setLeftUserId(key);
           setTimeout(() => setLeftUserId(null), 3000);
         }
       })
-      .on('broadcast', {event: 'move'}, ({payload}) => {
+      .on('broadcast', { event: 'move' }, ({ payload }) => {
         if (!payload || payload.uid === userId) return;
         setLivePositions(prev => {
           const next = new Map(prev);
@@ -88,7 +88,7 @@ export function useVillageRealtime({
           return next;
         });
       })
-      .on('broadcast', {event: 'chat'}, ({payload}) => {
+      .on('broadcast', { event: 'chat' }, ({ payload }) => {
         if (!payload || payload.uid === userId) return;
         // 귓속말: to가 있으면 내게 온 것만 수신
         if (payload.to && payload.to !== userId) return;
@@ -102,11 +102,11 @@ export function useVillageRealtime({
         setChatMessages(prev => [...prev, msg]);
         setTimeout(() => {
           setChatMessages(prev => prev.filter(m => m.id !== msg.id));
-        }, 5000);
+        }, 10000);
       })
       .subscribe(async status => {
         if (status === 'SUBSCRIBED') {
-          await channel.track({online: true});
+          await channel.track({ online: true });
         }
       });
 
@@ -144,7 +144,12 @@ export function useVillageRealtime({
       channelRef.current?.send({
         type: 'broadcast',
         event: 'chat',
-        payload: {uid: userId, nickname, message: message.trim(), ...(to ? {to} : {})},
+        payload: {
+          uid: userId,
+          nickname,
+          message: message.trim(),
+          ...(to ? { to } : {}),
+        },
       });
 
       const msg: ChatMessage = {
@@ -157,7 +162,7 @@ export function useVillageRealtime({
       setChatMessages(prev => [...prev, msg]);
       setTimeout(() => {
         setChatMessages(prev => prev.filter(m => m.id !== msg.id));
-      }, 5000);
+      }, 8000);
     },
     [userId],
   );

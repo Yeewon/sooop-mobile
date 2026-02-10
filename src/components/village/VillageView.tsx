@@ -3,6 +3,7 @@ import React, {
   useRef,
   useCallback,
   useState,
+  useEffect,
 } from 'react';
 import {
   View,
@@ -87,6 +88,28 @@ export default function VillageView({
     return null;
   }, [joinedUserId, leftUserId, friends]);
 
+  // 귓속말 수신 토스트
+  const [whisperToast, setWhisperToast] = useState<{
+    nickname: string;
+    message: string;
+  } | null>(null);
+  const prevWhisperCountRef = useRef(0);
+
+  useEffect(() => {
+    const incomingWhispers = chatMessages.filter(
+      m => m.isWhisper && m.uid !== myUserId,
+    );
+    if (
+      incomingWhispers.length > prevWhisperCountRef.current &&
+      incomingWhispers.length > 0
+    ) {
+      const latest = incomingWhispers[incomingWhispers.length - 1];
+      setWhisperToast({ nickname: latest.nickname, message: latest.message });
+      setTimeout(() => setWhisperToast(null), 4000);
+    }
+    prevWhisperCountRef.current = incomingWhispers.length;
+  }, [chatMessages, myUserId]);
+
   // Chat input + 귓속말
   const [chatInput, setChatInput] = useState('');
   const [whisperTarget, setWhisperTarget] = useState<string | null>(null);
@@ -157,18 +180,36 @@ export default function VillageView({
       myX.value = withTiming(targetX, { duration: 400 });
       myY.value = withTiming(targetY, { duration: 400 });
       cameraX.value = withTiming(
-        clamp(-(targetX - VILLAGE_WIDTH / 2 + MY_CHARACTER_SIZE / 2), minCamX, 0),
+        clamp(
+          -(targetX - VILLAGE_WIDTH / 2 + MY_CHARACTER_SIZE / 2),
+          minCamX,
+          0,
+        ),
         { duration: 400 },
       );
       cameraY.value = withTiming(
-        clamp(-(targetY - VILLAGE_VISIBLE_HEIGHT / 2 + MY_CHARACTER_SIZE / 2), minCamY, 0),
+        clamp(
+          -(targetY - VILLAGE_VISIBLE_HEIGHT / 2 + MY_CHARACTER_SIZE / 2),
+          minCamY,
+          0,
+        ),
         { duration: 400 },
       );
 
       broadcastPosition(targetX, targetY);
-      setSelectedFriend(null);
+      // setSelectedFriend(null);
     },
-    [myX, myY, cameraX, cameraY, maxX, maxY, minCamX, minCamY, broadcastPosition],
+    [
+      myX,
+      myY,
+      cameraX,
+      cameraY,
+      maxX,
+      maxY,
+      minCamX,
+      minCamY,
+      broadcastPosition,
+    ],
   );
 
   // Animated styles
@@ -209,11 +250,11 @@ export default function VillageView({
     (friend: FriendWithStatus) => {
       const pos = getEffectivePosition(friend.friend_id);
       if (!pos) return;
-      setSelectedFriend(prev =>
-        prev?.friend.friend_id === friend.friend_id
-          ? null
-          : { friend, x: pos.x, y: pos.y },
-      );
+      // setSelectedFriend(prev =>
+      //   prev?.friend.friend_id === friend.friend_id
+      //     ? null
+      //     : { friend, x: pos.x, y: pos.y },
+      // );
       // 귓속말 대상 설정
       setWhisperTarget(prev =>
         prev === friend.friend_id ? null : friend.friend_id,
@@ -225,19 +266,29 @@ export default function VillageView({
   const handleKnock = useCallback(() => {
     if (selectedFriend) {
       onFriendPress(selectedFriend.friend);
-      setSelectedFriend(null);
+      // setSelectedFriend(null);
     }
   }, [selectedFriend, onFriendPress]);
 
   return (
     <View>
-      <Text style={styles.positionNotice}>
-        메시지는 5초 후 사라지며 어디에도 저장되지 않아{'\n'}캐릭터를 탭하면
-        귓속말을 보낼 수 있어
-      </Text>
+      <View style={styles.noticeBanner}>
+        <Text style={styles.noticeBannerText}>
+          메시지는 10초 후 사라지며 어디에도 저장되지 않아
+        </Text>
+      </View>
       <View style={styles.container}>
         {/* Viewport clips the world */}
         <View style={styles.viewport}>
+          {/* 귓속말 수신 토스트 */}
+          {whisperToast && (
+            <View style={styles.whisperToast}>
+              <Text style={styles.whisperToastText}>
+                {whisperToast.nickname}님의 귓속말: {whisperToast.message}
+              </Text>
+            </View>
+          )}
+
           {/* 입장/퇴장 토스트 */}
           {presenceToast && (
             <View
@@ -378,6 +429,11 @@ export default function VillageView({
         </View>
       )}
 
+      {/* 귓속말 안내 */}
+      <Text style={styles.whisperHint}>
+        캐릭터를 탭하면 귓속말을 보낼 수 있어
+      </Text>
+
       {/* 채팅 입력 */}
       <View style={styles.chatRow}>
         <TextInput
@@ -418,7 +474,6 @@ export default function VillageView({
           </Text>
         </Pressable>
       </View>
-
     </View>
   );
 }
@@ -552,12 +607,19 @@ function useStyles(colors: ColorScheme) {
           fontSize: FontSizes.xs,
           textAlign: 'center',
         },
-        positionNotice: {
-          fontFamily: Fonts.bold,
-          fontSize: 9,
-          color: colors.muted,
-          textAlign: 'center',
+        noticeBanner: {
           marginTop: Spacing.sm,
+          backgroundColor: colors.nintendoBlue,
+          borderRadius: 10,
+          paddingVertical: 8,
+          paddingHorizontal: 14,
+        },
+        noticeBannerText: {
+          fontFamily: Fonts.regular,
+          fontSize: 10,
+          color: colors.white,
+          textAlign: 'center',
+          lineHeight: 16,
         },
         // 귓속말
         whisperTag: {
@@ -582,11 +644,35 @@ function useStyles(colors: ColorScheme) {
           color: colors.white,
           opacity: 0.7,
         },
+        whisperHint: {
+          fontFamily: Fonts.bold,
+          fontSize: 10,
+          color: colors.muted,
+          textAlign: 'center',
+          marginTop: Spacing.sm,
+        },
         whisperLabel: {
           fontFamily: Fonts.bold,
           fontSize: 7,
           color: colors.nintendoBlue,
           marginBottom: 1,
+        },
+        whisperToast: {
+          position: 'absolute',
+          bottom: 8,
+          alignSelf: 'center',
+          zIndex: 50,
+          backgroundColor: colors.nintendoBlue,
+          borderRadius: 8,
+          paddingHorizontal: 12,
+          paddingVertical: 6,
+          maxWidth: '80%',
+        },
+        whisperToastText: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.xs,
+          color: colors.white,
+          textAlign: 'center',
         },
       }),
     [colors],

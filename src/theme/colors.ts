@@ -10,6 +10,7 @@ export type ColorScheme = {
   nintendoBlue: string;
   nintendoYellow: string;
   nintendoGreen: string;
+  nintendoRed: string;
   border: string;
   shadowColor: string;
   white: string;
@@ -30,6 +31,7 @@ export const LightColors: ColorScheme = {
   nintendoBlue: '#4A6FB5',
   nintendoYellow: '#F5C518',
   nintendoGreen: '#48C774',
+  nintendoRed: '#E60012',
   border: '#E5E5E5',
   shadowColor: '#2D2D2D',
   white: '#FFFFFF',
@@ -50,6 +52,7 @@ export const DarkColors: ColorScheme = {
   nintendoBlue: '#6B8FD4',
   nintendoYellow: '#FFD93D',
   nintendoGreen: '#5ADB8A',
+  nintendoRed: '#FF4D5A',
   border: '#3A3A5A',
   shadowColor: '#000000',
   white: '#FFFFFF',

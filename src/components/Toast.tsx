@@ -9,6 +9,7 @@ interface ToastProps {
   type?: 'error' | 'success' | 'info';
   onDismiss: () => void;
   duration?: number;
+  bottomOffset?: number;
 }
 
 export default function Toast({
@@ -16,6 +17,7 @@ export default function Toast({
   type = 'info',
   onDismiss,
   duration = 2500,
+  bottomOffset,
 }: ToastProps) {
   const colors = useColors();
   const styles = useStyles(colors);
@@ -33,7 +35,11 @@ export default function Toast({
   return (
     <Pressable
       onPress={onDismiss}
-      style={[styles.container, {backgroundColor: bgColor}]}>
+      style={[
+        styles.container,
+        {backgroundColor: bgColor},
+        bottomOffset != null ? {bottom: bottomOffset} : {},
+      ]}>
       <Text style={styles.text}>{message}</Text>
     </Pressable>
   );
