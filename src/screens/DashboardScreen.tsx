@@ -219,7 +219,7 @@ export default function DashboardScreen() {
       <View style={styles.broadcastRow}>
         <NintendoCard
           style={{...styles.checkinCard, backgroundColor: Colors.white, shadowOpacity: 0, elevation: 0, flex: 1, marginBottom: 0}}>
-          <TypewriterText text={dailyMessage} style={styles.checkinText} />
+          <TypewriterText text={`${dailyMessage}...`} style={styles.checkinText} />
         </NintendoCard>
         <PixelAvatar avatarData={profile?.avatar_data ?? null} size={48} />
       </View>
