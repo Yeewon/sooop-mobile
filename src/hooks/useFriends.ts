@@ -247,6 +247,7 @@ export function useFriends(userId: string | undefined) {
   const sendKnock = async (
     toUserId: string,
     emoji?: string,
+    isAdmin?: boolean,
   ): Promise<{error: string | null}> => {
     if (!userId) return {error: null};
 
@@ -255,18 +256,20 @@ export function useFriends(userId: string | undefined) {
       return {error: '이 이웃은 지금 인사를 받지 않고 있어'};
     }
 
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    if (!isAdmin) {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
 
-    const {count} = await supabase
-      .from('knocks')
-      .select('*', {count: 'exact', head: true})
-      .eq('from_user_id', userId)
-      .eq('to_user_id', toUserId)
-      .gte('created_at', todayStart.toISOString());
+      const {count} = await supabase
+        .from('knocks')
+        .select('*', {count: 'exact', head: true})
+        .eq('from_user_id', userId)
+        .eq('to_user_id', toUserId)
+        .gte('created_at', todayStart.toISOString());
 
-    if (count && count > 0) {
-      return {error: '오늘은 이미 인사했어. 내일 다시 해봐!'};
+      if (count && count > 0) {
+        return {error: '오늘은 이미 인사했어. 내일 다시 해봐!'};
+      }
     }
 
     await supabase.from('knocks').insert({
@@ -354,6 +357,30 @@ export function useFriends(userId: string | undefined) {
     await loadFriends();
   };
 
+  const removeFriend = async (
+    friendId: string,
+  ): Promise<{error: string | null}> => {
+    if (!userId) return {error: null};
+
+    const {error: err1} = await supabase
+      .from('friends')
+      .delete()
+      .eq('user_id', userId)
+      .eq('friend_id', friendId);
+
+    if (err1) return {error: '연동 끊기에 실패했어'};
+
+    // 상대방 방향도 삭제
+    await supabase
+      .from('friends')
+      .delete()
+      .eq('user_id', friendId)
+      .eq('friend_id', userId);
+
+    await loadFriends();
+    return {error: null};
+  };
+
   const addFriend = async (inviteCode: string) => {
     if (!userId) return {error: '로그인이 필요합니다'};
 
@@ -397,6 +424,7 @@ export function useFriends(userId: string | undefined) {
     dismissKnockRequest,
     markNotificationSeen,
     addFriend,
+    removeFriend,
     reload: loadFriends,
   };
 }

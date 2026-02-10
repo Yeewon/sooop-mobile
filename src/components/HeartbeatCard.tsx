@@ -19,6 +19,7 @@ interface HeartbeatCardProps {
   onKnock: (knockId: string) => void;
   onPhoto: () => void;
   onKnockRequest: () => void;
+  onLongPress?: () => void;
 }
 
 function getHeartbeatInfo(lastCheckin: string | null): {
@@ -86,6 +87,7 @@ export default function HeartbeatCard({
   onKnock,
   onPhoto,
   onKnockRequest,
+  onLongPress,
 }: HeartbeatCardProps) {
   const heartbeat = getHeartbeatInfo(friend.last_checkin);
   const isInactive = !friend.last_checkin;
@@ -95,7 +97,7 @@ export default function HeartbeatCard({
     : null;
 
   return (
-    <Pressable onPress={onPhoto}>
+    <Pressable onPress={onPhoto} onLongPress={onLongPress}>
       {({pressed}) => (
         <NintendoCard
           style={{
@@ -137,7 +139,6 @@ export default function HeartbeatCard({
                 title={friend.has_knock_request_sent ? '요청함' : '인사 요청'}
                 variant={friend.has_knock_request_sent ? 'muted' : 'accent'}
                 small
-                disabled={friend.has_knock_request_sent}
                 onPress={onKnockRequest}
               />
             ) : (
@@ -145,7 +146,6 @@ export default function HeartbeatCard({
                 title={myIcon ? '인사함' : '인사하기'}
                 variant={myIcon ? 'muted' : isInactive ? 'accent' : 'yellow'}
                 small
-                disabled={!!myIcon}
                 onPress={() => onKnock('')}
               />
             )}
@@ -172,6 +172,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -2,
     right: -2,
+    resizeMode: 'contain'
   },
   info: {
     flex: 1,

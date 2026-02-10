@@ -126,8 +126,8 @@ const styles = StyleSheet.create({
     color: Colors.foreground,
   },
   sectionLabel: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.xs,
+    fontFamily: Fonts.regular,
+    fontSize: FontSizes.sm,
     color: Colors.muted,
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -142,13 +142,13 @@ const styles = StyleSheet.create({
   infoIcon: {width: 20, height: 20, marginTop: 2},
   infoContent: {flex: 1},
   infoTitle: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.sm,
+    fontFamily: Fonts.regular,
+    fontSize: FontSizes.lg,
     color: Colors.foreground,
   },
   infoSub: {
     fontFamily: Fonts.regular,
-    fontSize: FontSizes.xs,
+    fontSize: FontSizes.sm,
     color: Colors.muted,
     marginTop: 2,
   },
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
   },
   noteText: {
     fontFamily: Fonts.bold,
-    fontSize: FontSizes.xs,
+    fontSize: FontSizes.sm,
     color: Colors.muted,
     textAlign: 'center',
     lineHeight: 18,

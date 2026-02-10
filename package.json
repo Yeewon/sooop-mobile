@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "android": "react-native run-android",
-    "ios": "bash scripts/ios-device.sh",
+    "ios": "npx react-native run-ios --port 8082",
     "lint": "eslint .",
     "start": "react-native start",
     "test": "jest"

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {
   View,
   Text,
@@ -11,12 +11,13 @@ import {Colors, Fonts, FontSizes, Spacing} from '../theme';
 import {useAuthContext} from '../contexts/AuthContext';
 import {useCheckin} from '../hooks/useCheckin';
 import {useFriends} from '../hooks/useFriends';
-import {useSeason} from '../hooks/useSeason';
 import {useNotifications} from '../hooks/useNotifications';
 import {useDeepLink} from '../hooks/useDeepLink';
-import {KNOCK_ICONS, getDailyIndex} from '../shared/constants';
+import {KNOCK_ICONS, DAILY_MESSAGES, VILLAGE_CHARACTERS, getDailyIndex} from '../shared/constants';
 import {FriendWithStatus} from '../shared/types';
 import PixelAvatar from '../components/PixelAvatar';
+import NpcAvatar from '../components/NpcAvatar';
+import TypewriterText from '../components/TypewriterText';
 import NintendoCard from '../components/NintendoCard';
 import NintendoButton from '../components/NintendoButton';
 import HeartbeatCard from '../components/HeartbeatCard';
@@ -32,8 +33,6 @@ import PrivacyInfoModal from '../modals/PrivacyInfoModal';
 
 export default function DashboardScreen() {
   const {user, profile, signOut, updateAllowKnocks, updateNickname, updateAvatar} = useAuthContext();
-  const {config: seasonConfig} = useSeason();
-
   // 자동 체크인 + 푸시 알림
   useCheckin(user?.id);
   useNotifications(user?.id);
@@ -60,7 +59,20 @@ export default function DashboardScreen() {
     dismissKnockRequest,
     markNotificationSeen,
     addFriend,
+    removeFriend,
+    reload,
   } = useFriends(user?.id);
+
+  const [refreshing, setRefreshing] = useState(false);
+  const [msgIndex, setMsgIndex] = useState(() => getDailyIndex(DAILY_MESSAGES.length));
+  const [charIndex, setCharIndex] = useState(() => getDailyIndex(VILLAGE_CHARACTERS.length));
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    setMsgIndex(Math.floor(Math.random() * DAILY_MESSAGES.length));
+    setCharIndex(Math.floor(Math.random() * VILLAGE_CHARACTERS.length));
+    await reload();
+    setRefreshing(false);
+  }, [reload]);
 
   // 모달/토스트 상태
   const [knockError, setKnockError] = useState<string | null>(null);
@@ -74,14 +86,15 @@ export default function DashboardScreen() {
   const [showNicknameEdit, setShowNicknameEdit] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [photoFriend, setPhotoFriend] = useState<FriendWithStatus | null>(null);
+  const [unfriendConfirm, setUnfriendConfirm] = useState<string | null>(null);
 
-  const dailyMessage =
-    seasonConfig.messages[getDailyIndex(seasonConfig.messages.length)];
+  const dailyMessage = DAILY_MESSAGES[msgIndex];
+  const isAdmin = profile?.role === 'admin';
 
   const handleKnock = async (friendId: string, emoji?: string) => {
     if (!emoji) {
       const friend = friends.find(f => f.friend_id === friendId);
-      if (friend?.my_last_knock_emoji) {
+      if (!isAdmin && friend?.my_last_knock_emoji) {
         setKnockToast('하루에 한 번만 보낼 수 있어!');
         return;
       }
@@ -89,7 +102,7 @@ export default function DashboardScreen() {
       return;
     }
     setShowKnockPicker(null);
-    const {error} = await sendKnock(friendId, emoji);
+    const {error} = await sendKnock(friendId, emoji, isAdmin);
     if (error) {
       setKnockError(error);
       return;
@@ -127,6 +140,7 @@ export default function DashboardScreen() {
         onKnock={(emoji: string) => handleKnock(item.friend_id, emoji)}
         onPhoto={() => setPhotoFriend(item)}
         onKnockRequest={() => handleKnockRequest(item.friend_id)}
+        onLongPress={() => setUnfriendConfirm(item.friend_id)}
       />
     </AnimatedEntrance>
   );
@@ -201,60 +215,16 @@ export default function DashboardScreen() {
         </View>
       </View>
 
-      {/* 체크인 카드 */}
-      <NintendoCard
-        style={{...styles.checkinCard, backgroundColor: seasonConfig.cardBg}}>
-        <Image
-          source={require('../assets/icons/heart.png')}
-          style={styles.checkinIcon}
-        />
-        <Text style={styles.checkinText}>마을이 조금 더 따뜻해졌어</Text>
-        <Text style={styles.checkinSub}>{dailyMessage}</Text>
+      {/* 마을 방송 카드 */}
 
-        {/* 인사 수신 토글 */}
-        <View style={styles.divider} />
-        <Pressable
-          onPress={async () => {
-            if (profile) {
-              await updateAllowKnocks(!profile.allow_knocks);
-            }
-          }}
-          style={styles.toggleRow}>
-          {({pressed}) => (
-            <>
-          <View
-            style={[
-              styles.toggleTrack,
-              {
-                backgroundColor:
-                  profile?.allow_knocks !== false
-                    ? Colors.nintendoGreen
-                    : Colors.muted,
-                opacity: profile?.allow_knocks !== false ? 1 : 0.4,
-              },
-              pressed && {
-                transform: [{translateY: 2}],
-                shadowOffset: {width: 0, height: 0},
-              },
-            ]}>
-            <View
-              style={[
-                styles.toggleKnob,
-                profile?.allow_knocks !== false
-                  ? styles.toggleKnobOn
-                  : styles.toggleKnobOff,
-              ]}
-            />
-          </View>
-          <Text style={styles.toggleText}>
-            {profile?.allow_knocks !== false
-              ? '인사 받는 중'
-              : '인사 안 받는 중'}
-          </Text>
-            </>
-          )}
-        </Pressable>
-      </NintendoCard>
+
+      <View style={styles.broadcastRow}>
+        <NintendoCard
+          style={{...styles.checkinCard, backgroundColor: Colors.white, shadowOpacity: 0, elevation: 0, flex: 1, marginBottom: 0}}>
+          <TypewriterText text={dailyMessage} style={styles.checkinText} />
+        </NintendoCard>
+        <PixelAvatar avatarData={profile?.avatar_data ?? null} size={48} />
+      </View>
 
       {/* 받은 인사 요청 */}
       {knockRequests.length > 0 && (
@@ -370,8 +340,51 @@ export default function DashboardScreen() {
         </NintendoCard>
       )}
 
-      {/* 마을 이웃 타이틀 */}
-      <Text style={styles.friendsTitle}>마을 이웃 ({friends.length})</Text>
+      {/* 마을 이웃 타이틀 + 인사 수신 토글 */}
+      <View style={styles.Title}>
+        <Text style={styles.friendsTitle}>마을 이웃 ({friends.length})</Text>
+        <Pressable
+          onPress={async () => {
+            if (profile) {
+              await updateAllowKnocks(!profile.allow_knocks);
+            }
+          }}
+          style={styles.toggleRow}>
+          {({pressed}) => (
+            <>
+              <View
+                style={[
+                  styles.toggleTrack,
+                  {
+                    backgroundColor:
+                      profile?.allow_knocks !== false
+                        ? Colors.nintendoGreen
+                        : Colors.muted,
+                    opacity: profile?.allow_knocks !== false ? 1 : 0.4,
+                  },
+                  pressed && {
+                    transform: [{translateY: 2}],
+                    shadowOffset: {width: 0, height: 0},
+                  },
+                ]}>
+                <View
+                  style={[
+                    styles.toggleKnob,
+                    profile?.allow_knocks !== false
+                      ? styles.toggleKnobOn
+                      : styles.toggleKnobOff,
+                  ]}
+                />
+              </View>
+              <Text style={styles.toggleText}>
+                {profile?.allow_knocks !== false
+                  ? '인사 받는 중'
+                  : '인사 안 받는 중'}
+              </Text>
+            </>
+          )}
+        </Pressable>
+      </View>
 
       {friendsLoading && (
         <View style={styles.loadingBox}>
@@ -417,7 +430,7 @@ export default function DashboardScreen() {
 
   return (
     <View style={styles.container}>
-      {/* <SeasonalEffect emoji={seasonConfig.emoji} /> */}
+      {/* <SeasonalEffect /> */}
       <FlatList
         data={!friendsLoading ? friends : []}
         renderItem={renderFriendItem}
@@ -426,6 +439,8 @@ export default function DashboardScreen() {
         ListFooterComponent={listFooter}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
       />
 
       {/* 인사 아이콘 피커 */}
@@ -561,6 +576,52 @@ export default function DashboardScreen() {
                 title="보내기"
                 variant="accent"
                 onPress={confirmKnockRequest}
+                style={styles.modalBtn}
+              />
+            </View>
+          </Pressable>
+        </Pressable>
+      )}
+
+      {/* 연동 끊기 확인 */}
+      {unfriendConfirm && (
+        <Pressable
+          style={styles.overlay}
+          onPress={() => setUnfriendConfirm(null)}>
+          <Pressable
+            style={styles.modalCard}
+            onPress={e => e.stopPropagation()}>
+            <Image
+              source={require('../assets/icons/flag.png')}
+              style={styles.modalIcon}
+            />
+            <Text style={styles.modalTitle}>
+              {friends.find(f => f.friend_id === unfriendConfirm)?.nickname}
+              님과 이웃을 끊을까?
+            </Text>
+            <Text style={styles.modalSub}>
+              서로의 마을에서 사라지게 돼
+            </Text>
+            <View style={styles.modalBtns}>
+              <NintendoButton
+                title="취소"
+                variant="muted"
+                onPress={() => setUnfriendConfirm(null)}
+                style={styles.modalBtn}
+              />
+              <NintendoButton
+                title="끊기"
+                variant="accent"
+                onPress={async () => {
+                  const friendId = unfriendConfirm;
+                  setUnfriendConfirm(null);
+                  const {error} = await removeFriend(friendId);
+                  if (error) {
+                    setKnockError(error);
+                  } else {
+                    setKnockToast('이웃 연동을 끊었어');
+                  }
+                }}
                 style={styles.modalBtn}
               />
             </View>
@@ -705,28 +766,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: Spacing.lg,
   },
-  checkinIcon: {
-    width: 48,
-    height: 48,
-    marginBottom: Spacing.sm,
+  broadcastRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    marginBottom: Spacing.lg,
   },
+
   checkinText: {
     fontFamily: Fonts.bold,
-    fontSize: FontSizes.sm,
+    fontSize: FontSizes.lg,
     color: Colors.foreground,
-  },
-  checkinSub: {
-    fontFamily: Fonts.regular,
-    fontSize: FontSizes.xs,
-    color: Colors.muted,
-    marginTop: Spacing.xs,
-  },
-  divider: {
-    width: '100%',
-    height: 2,
-    backgroundColor: Colors.border,
-    marginTop: Spacing.lg,
-    marginBottom: Spacing.md,
+    textAlign: 'center',
+    lineHeight: 24,
   },
   toggleRow: {
     flexDirection: 'row',
@@ -855,6 +907,12 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.bold,
     fontSize: FontSizes.xs,
   },
+  Title: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.md,
+  },
   // 친구 리스트
   friendsTitle: {
     fontFamily: Fonts.bold,
@@ -862,7 +920,6 @@ const styles = StyleSheet.create({
     color: Colors.muted,
     textTransform: 'uppercase',
     letterSpacing: 1,
-    marginBottom: Spacing.md,
   },
   friendItem: {
     marginBottom: Spacing.md,
