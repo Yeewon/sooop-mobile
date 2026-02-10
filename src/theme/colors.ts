@@ -15,6 +15,7 @@ export type ColorScheme = {
   white: string;
   black: string;
   knockReqBg: string;
+  villageGrass: string;
 };
 
 export const LightColors: ColorScheme = {
@@ -34,6 +35,7 @@ export const LightColors: ColorScheme = {
   white: '#FFFFFF',
   black: '#000000',
   knockReqBg: '#FFF2F3',
+  villageGrass: '#7EC850',
 };
 
 export const DarkColors: ColorScheme = {
@@ -53,6 +55,7 @@ export const DarkColors: ColorScheme = {
   white: '#FFFFFF',
   black: '#000000',
   knockReqBg: '#3D2030',
+  villageGrass: '#2D5A1E',
 };
 
 // 하위호환용

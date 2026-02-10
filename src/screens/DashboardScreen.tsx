@@ -47,6 +47,7 @@ import AvatarBuilderModal from '../modals/AvatarBuilderModal';
 import PhotoFrameModal from '../modals/PhotoFrameModal';
 import NicknameEditModal from '../modals/NicknameEditModal';
 import PrivacyInfoModal from '../modals/PrivacyInfoModal';
+import VillageView from '../components/village/VillageView';
 
 export default function DashboardScreen() {
   const colors = useColors();
@@ -90,6 +91,7 @@ export default function DashboardScreen() {
     reload,
   } = useFriends(user?.id);
 
+  const [viewMode, setViewMode] = useState<'list' | 'village'>('list');
   const [refreshing, setRefreshing] = useState(false);
   const [msgIndex, setMsgIndex] = useState(() =>
     getDailyIndex(DAILY_MESSAGES.length),
@@ -482,9 +484,45 @@ export default function DashboardScreen() {
         </NintendoCard>
       )}
 
-      {/* 마을 이웃 타이틀 + 인사 수신 토글 */}
+      {/* 마을 이웃 타이틀 + 뷰 토글 + 인사 수신 토글 */}
       <View style={styles.Title}>
         <Text style={styles.friendsTitle}>마을 이웃 ({friends.length})</Text>
+        <View style={styles.viewToggleRow}>
+          <Pressable
+            onPress={() => setViewMode('list')}
+            style={{
+              ...styles.viewToggleBtn,
+              backgroundColor:
+                viewMode === 'list' ? colors.accent : colors.cardBg,
+            }}
+          >
+            <Text
+              style={{
+                ...styles.viewToggleText,
+                color: viewMode === 'list' ? colors.white : colors.muted,
+              }}
+            >
+              목록
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setViewMode('village')}
+            style={{
+              ...styles.viewToggleBtn,
+              backgroundColor:
+                viewMode === 'village' ? colors.accent : colors.cardBg,
+            }}
+          >
+            <Text
+              style={{
+                ...styles.viewToggleText,
+                color: viewMode === 'village' ? colors.white : colors.muted,
+              }}
+            >
+              마을
+            </Text>
+          </Pressable>
+        </View>
         <Pressable onPress={handleToggleAllowKnocks} style={styles.toggleRow}>
           {({ pressed }) => (
             <>
@@ -550,23 +588,34 @@ export default function DashboardScreen() {
   );
 
   const listFooter = (
-    <View style={styles.footer}>
-      <Image
-        source={require('../assets/icons/shine.png')}
-        style={styles.footerIcon}
-      />
-      <Text style={styles.footerText}>가끔 들르는 것만으로도 충분해요</Text>
-      <Image
-        source={require('../assets/icons/shine.png')}
-        style={styles.footerIcon}
-      />
-    </View>
+    <>
+      {viewMode === 'village' && !friendsLoading && (
+        <VillageView
+          friends={friends}
+          myAvatar={profile?.avatar_data ?? null}
+          myNickname={profile?.nickname || '나'}
+          myUserId={user?.id}
+          onFriendPress={friend => handleKnock(friend.friend_id)}
+        />
+      )}
+      <View style={styles.footer}>
+        <Image
+          source={require('../assets/icons/shine.png')}
+          style={styles.footerIcon}
+        />
+        <Text style={styles.footerText}>가끔 들르는 것만으로도 충분해요</Text>
+        <Image
+          source={require('../assets/icons/shine.png')}
+          style={styles.footerIcon}
+        />
+      </View>
+    </>
   );
 
   return (
     <View style={styles.container}>
       <FlatList
-        data={!friendsLoading ? friends : []}
+        data={viewMode === 'list' && !friendsLoading ? friends : []}
         renderItem={renderFriendItem}
         keyExtractor={item => item.friend_id}
         ListHeaderComponent={listHeader}
@@ -1383,6 +1432,21 @@ function useStyles(colors: ColorScheme) {
           color: colors.muted,
           textTransform: 'uppercase',
           letterSpacing: 1,
+        },
+        viewToggleRow: {
+          flexDirection: 'row',
+          gap: 4,
+        },
+        viewToggleBtn: {
+          paddingHorizontal: 10,
+          paddingVertical: 4,
+          borderRadius: 8,
+          borderWidth: 2,
+          borderColor: colors.border,
+        },
+        viewToggleText: {
+          fontFamily: Fonts.bold,
+          fontSize: 10,
         },
         friendItem: {
           marginBottom: Spacing.md,
