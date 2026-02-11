@@ -224,48 +224,61 @@ export default function WeatherWidget({
   const isDark = colors.background === '#1A1A2E';
   const styles = useStyles(colors);
   const [showConfirm, setShowConfirm] = useState(false);
-  if (loading || !weather) {
-    return null;
-  }
-
-  const bg = WEATHER_BG[weather.icon] || DEFAULT_BG;
-  const bgColor = isDark ? bg[1] : bg[0];
+  const hasWeather = !loading && weather;
+  const bg = hasWeather ? (WEATHER_BG[weather.icon] || DEFAULT_BG) : null;
+  const bgColor = hasWeather ? (isDark ? bg![1] : bg![0]) : colors.cardBg;
   const textColor = isDark ? '#F0EDE8' : '#1A1000';
   const mutedColor = isDark ? '#A09888' : '#5A4A30';
-  const weatherMsg = getWeatherMessage(weather.icon, weather.temp);
+  const weatherMsg = hasWeather ? getWeatherMessage(weather.icon, weather.temp) : '';
 
   return (
     <>
       <View style={{ ...styles.container, backgroundColor: bgColor }}>
-        <WeatherPixels icon={weather.icon} isDark={isDark} />
-        <View style={styles.weatherRow}>
-          <View style={styles.info}>
-            <Text style={{ ...styles.temp, color: textColor }}>
-              {weather.temp}°
-            </Text>
-            <Text style={{ ...styles.desc, color: textColor }}>
-              {weather.description}
-            </Text>
-          </View>
-          <Text style={{ ...styles.city, color: mutedColor }}>
-            {weather.city}
-          </Text>
-        </View>
-        <View
-          style={{
-            ...styles.weatherMsgBg,
-            backgroundColor: isDark
-              ? 'rgba(0,0,0,0.25)'
-              : 'rgba(255,255,255,0.45)',
-          }}
-        >
-          <Text style={{ ...styles.weatherMsg, color: textColor }}>
-            {weatherMsg}
-          </Text>
-        </View>
+        {hasWeather && <WeatherPixels icon={weather.icon} isDark={isDark} />}
+
+        {/* 날씨 정보 or 스켈레톤 */}
+        {hasWeather ? (
+          <>
+            <View style={styles.weatherRow}>
+              <View style={styles.info}>
+                <Text style={{ ...styles.temp, color: textColor }}>
+                  {weather.temp}°
+                </Text>
+                <Text style={{ ...styles.desc, color: textColor }}>
+                  {weather.description}
+                </Text>
+              </View>
+              <Text style={{ ...styles.city, color: mutedColor }}>
+                {weather.city}
+              </Text>
+            </View>
+            <View
+              style={{
+                ...styles.weatherMsgBg,
+                backgroundColor: isDark
+                  ? 'rgba(0,0,0,0.25)'
+                  : 'rgba(255,255,255,0.45)',
+              }}
+            >
+              <Text style={{ ...styles.weatherMsg, color: textColor }}>
+                {weatherMsg}
+              </Text>
+            </View>
+          </>
+        ) : (
+          <>
+            <View style={styles.weatherRow}>
+              <View style={styles.info}>
+                <View style={{ ...styles.skeletonBlock, width: 48, height: 20 }} />
+                <View style={{ ...styles.skeletonBlock, width: 36, height: 16 }} />
+              </View>
+              <View style={{ ...styles.skeletonBlock, width: 40, height: 12, marginLeft: 'auto' }} />
+            </View>
+            <View style={{ ...styles.skeletonBlock, width: 160, height: 14, marginHorizontal: Spacing.xs, marginBottom: Spacing.sm }} />
+          </>
+        )}
 
         {/* 마을 방송 카드 */}
-
         <View style={styles.broadcastRow}>
           <NintendoCard
             style={{
@@ -469,6 +482,11 @@ function useStyles(colors: ColorScheme) {
         },
         modalBtn: {
           flex: 1,
+        },
+        skeletonBlock: {
+          backgroundColor: colors.border,
+          borderRadius: 6,
+          opacity: 0.5,
         },
       }),
     [colors],
