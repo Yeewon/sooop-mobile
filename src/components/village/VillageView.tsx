@@ -805,7 +805,7 @@ function useStyles(colors: ColorScheme) {
         },
         noticeBanner: {
           marginTop: Spacing.sm,
-          backgroundColor: colors.border,
+          backgroundColor: colors.shadowColor,
           borderRadius: 10,
           paddingVertical: 8,
           paddingHorizontal: 14,
@@ -813,7 +813,7 @@ function useStyles(colors: ColorScheme) {
         noticeBannerText: {
           fontFamily: Fonts.regular,
           fontSize: 10,
-          color: colors.knockReqBg,
+          color: colors.white,
           textAlign: 'center',
           lineHeight: 16,
         },
