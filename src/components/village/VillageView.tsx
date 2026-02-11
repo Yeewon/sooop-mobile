@@ -10,6 +10,7 @@ import {
   Text,
   TextInput,
   Pressable,
+  ScrollView,
   StyleSheet,
   type GestureResponderEvent,
 } from 'react-native';
@@ -35,6 +36,42 @@ import VillageCharacter from './VillageCharacter';
 import VillageBackground from './VillageBackground';
 import SpeechBubble from './SpeechBubble';
 import PixelAvatar from '../PixelAvatar';
+import WeatherParticles, { WeatherGround } from './WeatherParticles';
+import { getVillageAmbience } from './villageAmbience';
+import type { TimeOfDay, WeatherType } from './villageAmbience';
+import type { WeatherData } from '../../hooks/useWeather';
+
+const TIME_OPTIONS: (TimeOfDay | 'auto')[] = [
+  'auto',
+  'morning',
+  'day',
+  'evening',
+  'night',
+];
+const TIME_LABELS: Record<string, string> = {
+  auto: '자동',
+  morning: '아침',
+  day: '낮',
+  evening: '저녁',
+  night: '밤',
+};
+const WEATHER_OPTIONS: (WeatherType | 'auto')[] = [
+  'auto',
+  'clear',
+  'clouds',
+  'rain',
+  'snow',
+  'fog',
+];
+const WEATHER_LABELS: Record<string, string> = {
+  auto: '자동',
+  clear: '맑음',
+  clouds: '흐림',
+  rain: '비',
+  snow: '눈',
+  fog: '안개',
+};
+
 const MOVE_MARGIN = 20;
 const TAP_MOVE_DISTANCE = 60;
 
@@ -48,6 +85,8 @@ interface VillageViewProps {
   myNickname: string;
   myUserId: string | undefined;
   onFriendPress: (friend: FriendWithStatus) => void;
+  weather?: WeatherData | null;
+  isAdmin?: boolean;
 }
 
 export default function VillageView({
@@ -56,10 +95,28 @@ export default function VillageView({
   myNickname,
   myUserId,
   onFriendPress,
+  weather,
+  isAdmin,
 }: VillageViewProps) {
   const colors = useColors();
   const styles = useStyles(colors);
   const positions = useVillagePositions(friends);
+
+  // 테스트 패널 상태
+  const [debugTime, setDebugTime] = useState<TimeOfDay | 'auto'>('auto');
+  const [debugWeather, setDebugWeather] = useState<WeatherType | 'auto'>(
+    'auto',
+  );
+
+  const ambience = useMemo(
+    () =>
+      getVillageAmbience(
+        weather?.icon,
+        debugTime === 'auto' ? undefined : debugTime,
+        debugWeather === 'auto' ? undefined : debugWeather,
+      ),
+    [weather?.icon, debugTime, debugWeather],
+  );
 
   // Realtime multiplayer + chat
   const {
@@ -105,7 +162,7 @@ export default function VillageView({
     ) {
       const latest = incomingWhispers[incomingWhispers.length - 1];
       setWhisperToast({ nickname: latest.nickname, message: latest.message });
-      setTimeout(() => setWhisperToast(null), 4000);
+      setTimeout(() => setWhisperToast(null), 10000);
     }
     prevWhisperCountRef.current = incomingWhispers.length;
   }, [chatMessages, myUserId]);
@@ -277,9 +334,59 @@ export default function VillageView({
           메시지는 10초 후 사라지며 어디에도 저장되지 않아
         </Text>
       </View>
-      <View style={styles.container}>
+
+      {/* 접속 중인 유저 */}
+      <View style={styles.onlineRow}>
+        <Text style={styles.onlineLabel}>접속 중</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.onlineList}
+        >
+          <View style={styles.onlineItem}>
+            <View style={styles.onlineAvatarWrap}>
+              <PixelAvatar avatarData={myAvatar} size={24} />
+              <View
+                style={{
+                  ...styles.onlineIndicator,
+                  backgroundColor: colors.nintendoGreen,
+                }}
+              />
+            </View>
+            <Text style={styles.onlineNickname} numberOfLines={1}>
+              나
+            </Text>
+          </View>
+          {friends
+            .filter(f => onlineUsers.has(f.friend_id))
+            .map(f => (
+              <View key={f.friend_id} style={styles.onlineItem}>
+                <View style={styles.onlineAvatarWrap}>
+                  <PixelAvatar avatarData={f.avatar_data} size={24} />
+                  <View
+                    style={{
+                      ...styles.onlineIndicator,
+                      backgroundColor: colors.nintendoGreen,
+                    }}
+                  />
+                </View>
+                <Text style={styles.onlineNickname} numberOfLines={1}>
+                  {f.nickname.length > 4
+                    ? f.nickname.slice(0, 4) + '..'
+                    : f.nickname}
+                </Text>
+              </View>
+            ))}
+        </ScrollView>
+      </View>
+
+      <View
+        style={{ ...styles.container, backgroundColor: ambience.grassColor }}
+      >
         {/* Viewport clips the world */}
-        <View style={styles.viewport}>
+        <View
+          style={{ ...styles.viewport, backgroundColor: ambience.skyColor }}
+        >
           {/* 귓속말 수신 토스트 */}
           {whisperToast && (
             <View style={styles.whisperToast}>
@@ -313,20 +420,39 @@ export default function VillageView({
               onPress={handleBackgroundTap}
               style={{
                 ...StyleSheet.absoluteFill,
-                backgroundColor: colors.villageGrass,
+                backgroundColor: ambience.grassColor,
               }}
             >
               <VillageBackground />
             </Pressable>
 
+            {/* 날씨 쌓임 효과 (월드에 고정) */}
+            {(ambience.particleType === 'rain' ||
+              ambience.particleType === 'snow') && (
+              <WeatherGround type={ambience.particleType} />
+            )}
+
             {/* 내 캐릭터 */}
             <Animated.View style={meAnimStyle}>
               <View style={styles.meWrap}>
-                {/* 내 채팅 말풍선 */}
+                <View>
+                  <PixelAvatar avatarData={myAvatar} size={MY_CHARACTER_SIZE} />
+                  <View
+                    style={{
+                      ...styles.statusDot,
+                      backgroundColor: colors.nintendoGreen,
+                      borderColor: ambience.grassColor,
+                    }}
+                  />
+                </View>
+                <Text style={styles.myName}>{myDisplayName}</Text>
+                {/* 내 채팅 말풍선 — absolute로 캐릭터 위에 띄움 */}
                 {myChatMsg && (
                   <View
                     style={{
                       ...styles.meChatBubble,
+                      position: 'absolute',
+                      bottom: '100%',
                       ...(myChatIsWhisper
                         ? { borderColor: colors.nintendoBlue }
                         : {}),
@@ -348,16 +474,6 @@ export default function VillageView({
                     />
                   </View>
                 )}
-                <View>
-                  <PixelAvatar avatarData={myAvatar} size={MY_CHARACTER_SIZE} />
-                  <View
-                    style={{
-                      ...styles.statusDot,
-                      backgroundColor: colors.nintendoGreen,
-                    }}
-                  />
-                </View>
-                <Text style={styles.myName}>{myDisplayName}</Text>
               </View>
             </Animated.View>
 
@@ -414,6 +530,21 @@ export default function VillageView({
               </View>
             )}
           </Animated.View>
+
+          {/* 날씨 파티클 (비/눈/안개) */}
+          {ambience.particleType !== 'none' && (
+            <WeatherParticles type={ambience.particleType} />
+          )}
+
+          {/* 시간대 분위기 오버레이 */}
+          <View
+            style={{
+              ...StyleSheet.absoluteFill,
+              backgroundColor: ambience.ambientOverlay,
+              zIndex: 30,
+            }}
+            pointerEvents="none"
+          />
         </View>
       </View>
 
@@ -474,6 +605,71 @@ export default function VillageView({
           </Text>
         </Pressable>
       </View>
+
+      {/* 테스트 패널 (admin only) */}
+      {isAdmin && (
+        <View style={styles.debugPanel}>
+          <Text style={styles.debugTitle}>관리자 테스트</Text>
+          <View style={styles.debugRow}>
+            <Text style={styles.debugLabel}>시간</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.debugChips}
+            >
+              {TIME_OPTIONS.map(t => (
+                <Pressable
+                  key={t}
+                  onPress={() => setDebugTime(t)}
+                  style={{
+                    ...styles.debugChip,
+                    backgroundColor:
+                      debugTime === t ? colors.nintendoBlue : colors.cardBg,
+                  }}
+                >
+                  <Text
+                    style={{
+                      ...styles.debugChipText,
+                      color: debugTime === t ? colors.white : colors.muted,
+                    }}
+                  >
+                    {TIME_LABELS[t]}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+          <View style={styles.debugRow}>
+            <Text style={styles.debugLabel}>날씨</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.debugChips}
+            >
+              {WEATHER_OPTIONS.map(w => (
+                <Pressable
+                  key={w}
+                  onPress={() => setDebugWeather(w)}
+                  style={{
+                    ...styles.debugChip,
+                    backgroundColor:
+                      debugWeather === w ? colors.nintendoBlue : colors.cardBg,
+                  }}
+                >
+                  <Text
+                    style={{
+                      ...styles.debugChipText,
+                      color: debugWeather === w ? colors.white : colors.muted,
+                    }}
+                  >
+                    {WEATHER_LABELS[w]}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -609,7 +805,7 @@ function useStyles(colors: ColorScheme) {
         },
         noticeBanner: {
           marginTop: Spacing.sm,
-          backgroundColor: colors.nintendoBlue,
+          backgroundColor: colors.border,
           borderRadius: 10,
           paddingVertical: 8,
           paddingHorizontal: 14,
@@ -617,7 +813,7 @@ function useStyles(colors: ColorScheme) {
         noticeBannerText: {
           fontFamily: Fonts.regular,
           fontSize: 10,
-          color: colors.white,
+          color: colors.knockReqBg,
           textAlign: 'center',
           lineHeight: 16,
         },
@@ -673,6 +869,89 @@ function useStyles(colors: ColorScheme) {
           fontSize: FontSizes.xs,
           color: colors.white,
           textAlign: 'center',
+        },
+        // 접속 중 유저 리스트
+        onlineRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          marginTop: Spacing.sm,
+          gap: Spacing.sm,
+        },
+        onlineLabel: {
+          fontFamily: Fonts.bold,
+          fontSize: 10,
+          color: colors.muted,
+        },
+        onlineList: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: Spacing.sm,
+        },
+        onlineItem: {
+          alignItems: 'center',
+          gap: 2,
+        },
+        onlineAvatarWrap: {
+          position: 'relative',
+        },
+        onlineIndicator: {
+          position: 'absolute',
+          bottom: -1,
+          right: -1,
+          width: 8,
+          height: 8,
+          borderRadius: 4,
+          borderWidth: 1.5,
+          borderColor: colors.background,
+        },
+        onlineNickname: {
+          fontFamily: Fonts.bold,
+          fontSize: 9,
+          color: colors.foreground,
+          maxWidth: 44,
+          textAlign: 'center',
+        },
+        // 테스트 패널
+        debugPanel: {
+          marginTop: Spacing.sm,
+          backgroundColor: colors.cardBg,
+          borderRadius: 10,
+          padding: Spacing.sm,
+          borderWidth: 2,
+          borderColor: colors.border,
+        },
+        debugTitle: {
+          fontFamily: Fonts.bold,
+          fontSize: 10,
+          color: colors.muted,
+          marginBottom: 6,
+        },
+        debugRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 6,
+          marginBottom: 4,
+        },
+        debugLabel: {
+          fontFamily: Fonts.bold,
+          fontSize: 10,
+          color: colors.foreground,
+          width: 28,
+        },
+        debugChips: {
+          flexDirection: 'row',
+          gap: 4,
+        },
+        debugChip: {
+          paddingHorizontal: 8,
+          paddingVertical: 4,
+          borderRadius: 6,
+          borderWidth: 1.5,
+          borderColor: colors.border,
+        },
+        debugChipText: {
+          fontFamily: Fonts.bold,
+          fontSize: 10,
         },
       }),
     [colors],

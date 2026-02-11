@@ -162,7 +162,7 @@ export function useVillageRealtime({
       setChatMessages(prev => [...prev, msg]);
       setTimeout(() => {
         setChatMessages(prev => prev.filter(m => m.id !== msg.id));
-      }, 8000);
+      }, 10000);
     },
     [userId],
   );

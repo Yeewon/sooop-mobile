@@ -38,7 +38,6 @@ import {
 import { supabase } from '../lib/supabase';
 import { FriendWithStatus } from '../shared/types';
 import PixelAvatar from '../components/PixelAvatar';
-import TypewriterText from '../components/TypewriterText';
 import NintendoCard from '../components/NintendoCard';
 import NintendoButton from '../components/NintendoButton';
 import HeartbeatCard from '../components/HeartbeatCard';
@@ -51,6 +50,8 @@ import PhotoFrameModal from '../modals/PhotoFrameModal';
 import NicknameEditModal from '../modals/NicknameEditModal';
 import PrivacyInfoModal from '../modals/PrivacyInfoModal';
 import VillageView from '../components/village/VillageView';
+import WeatherWidget from '../components/WeatherWidget';
+import { useWeather } from '../hooks/useWeather';
 
 export default function DashboardScreen() {
   const colors = useColors();
@@ -64,9 +65,15 @@ export default function DashboardScreen() {
     updateNickname,
     updateAvatar,
   } = useAuthContext();
-  // 자동 체크인 + 푸시 알림
+  // 자동 체크인 + 푸시 알림 + 날씨
   useCheckin(user?.id);
   useNotifications(user?.id);
+  const {
+    weather,
+    loading: weatherLoading,
+    locationGranted,
+    reload: reloadWeather,
+  } = useWeather();
 
   // 딥링크로 초대 코드 받으면 자동 친구 추가
   useDeepLink(async (code: string) => {
@@ -102,13 +109,28 @@ export default function DashboardScreen() {
   const [charIndex, setCharIndex] = useState(() =>
     getDailyIndex(VILLAGE_CHARACTERS.length),
   );
+  // 앱 포그라운드 복귀 시 홈 데이터 리로드
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', state => {
+      if (state === 'active') {
+        reload();
+      }
+    });
+    return () => sub.remove();
+  }, [reload]);
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     setMsgIndex(Math.floor(Math.random() * DAILY_MESSAGES.length));
     setCharIndex(Math.floor(Math.random() * VILLAGE_CHARACTERS.length));
-    await reload();
-    setRefreshing(false);
-  }, [reload]);
+    try {
+      await Promise.all([reload(), reloadWeather()]);
+    } catch {
+      // ignore
+    } finally {
+      setRefreshing(false);
+    }
+  }, [reload, reloadWeather]);
 
   // 모달/토스트 상태
   const [knockError, setKnockError] = useState<string | null>(null);
@@ -247,7 +269,8 @@ export default function DashboardScreen() {
       setKnockError(error);
       return;
     }
-    // knock animation could go here
+    const friend = friends.find(f => f.friend_id === friendId);
+    setKnockToast(`${friend?.nickname ?? '이웃'}에게 인사를 보냈어!`);
   };
 
   const handleKnockRequest = (friendId: string) => {
@@ -366,241 +389,240 @@ export default function DashboardScreen() {
         </View>
       </View>
 
-      {/* 마을 방송 카드 */}
-
-      <View style={styles.broadcastRow}>
-        <NintendoCard
+      {/* 뷰 모드 토글 */}
+      <View style={{ ...styles.viewToggleRow, marginBottom: Spacing.md }}>
+        <Pressable
+          onPress={() => setViewMode('list')}
           style={{
-            ...styles.checkinCard,
-            backgroundColor: colors.cardBg,
-            shadowOpacity: 0,
-            elevation: 0,
-            flex: 1,
-            marginBottom: 0,
+            ...styles.viewToggleBtn,
+            backgroundColor:
+              viewMode === 'list' ? colors.nintendoBlue : colors.cardBg,
           }}
         >
-          <TypewriterText
-            text={`${dailyMessage}...`}
-            style={styles.checkinText}
-          />
-        </NintendoCard>
-        <PixelAvatar avatarData={profile?.avatar_data ?? null} size={48} />
+          <Text
+            style={{
+              ...styles.viewToggleText,
+              color: viewMode === 'list' ? colors.white : colors.muted,
+            }}
+          >
+            목록
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={() => setViewMode('village')}
+          style={{
+            ...styles.viewToggleBtn,
+            backgroundColor:
+              viewMode === 'village' ? colors.nintendoBlue : colors.cardBg,
+          }}
+        >
+          <Text
+            style={{
+              ...styles.viewToggleText,
+              color: viewMode === 'village' ? colors.white : colors.muted,
+            }}
+          >
+            마을
+          </Text>
+        </Pressable>
       </View>
 
-      {/* 받은 인사 요청 */}
-      {knockRequests.length > 0 && (
-        <NintendoCard style={styles.knockReqCard}>
-          <View style={styles.sectionHeader}>
-            <Image
-              source={require('../assets/icons/mail.png')}
-              style={styles.sectionIcon}
-            />
-            <Text style={styles.sectionTitleAccent}>인사 요청이 왔어!</Text>
-          </View>
-          {knockRequests.map(req => (
-            <View key={req.from_user_id} style={styles.reqRow}>
-              <PixelAvatar avatarData={req.avatar_data} size={28} />
-              <Text style={styles.reqNickname} numberOfLines={1}>
-                {req.nickname}
-              </Text>
-              <NintendoButton
-                title="괜찮아"
-                variant="muted"
-                small
-                onPress={() => dismissKnockRequest(req.from_user_id)}
-              />
-              <NintendoButton
-                title="수락"
-                variant="accent"
-                small
-                onPress={() => setAcceptConfirm(req.from_user_id)}
-              />
-            </View>
-          ))}
-        </NintendoCard>
-      )}
+      {viewMode === 'list' && (
+        <>
+          {/* 날씨 */}
+          <WeatherWidget
+            weather={weather}
+            loading={weatherLoading}
+            locationGranted={locationGranted}
+            dailyMessage={dailyMessage}
+          />
+          {/* 받은 인사 요청 */}
+          {knockRequests.length > 0 && (
+            <NintendoCard style={styles.knockReqCard}>
+              <View style={styles.sectionHeader}>
+                <Image
+                  source={require('../assets/icons/mail.png')}
+                  style={styles.sectionIcon}
+                />
+                <Text style={styles.sectionTitleAccent}>인사 요청이 왔어!</Text>
+              </View>
+              {knockRequests.map(req => (
+                <View key={req.from_user_id} style={styles.reqRow}>
+                  <PixelAvatar avatarData={req.avatar_data} size={28} />
+                  <Text style={styles.reqNickname} numberOfLines={1}>
+                    {req.nickname}
+                  </Text>
+                  <NintendoButton
+                    title="괜찮아"
+                    variant="muted"
+                    small
+                    onPress={() => dismissKnockRequest(req.from_user_id)}
+                  />
+                  <NintendoButton
+                    title="수락"
+                    variant="accent"
+                    small
+                    onPress={() => setAcceptConfirm(req.from_user_id)}
+                  />
+                </View>
+              ))}
+            </NintendoCard>
+          )}
 
-      {/* 받은 인사 */}
-      {unseenFriends.length > 0 && (
-        <View style={styles.knockSection}>
-          <View style={styles.sectionHeader}>
-            <Image
+          {/* 받은 인사 */}
+          {unseenFriends.length > 0 && (
+            <View style={styles.knockSection}>
+              <View style={styles.sectionHeader}>
+                {/* <Image
               source={require('../assets/icons/thumb.png')}
               style={styles.sectionIcon}
-            />
-            <Text style={styles.sectionTitleAccent}>인사가 왔어!</Text>
-          </View>
-          {unseenFriends.map(f => {
-            const knockIcon = f.last_knock_emoji
-              ? KNOCK_ICONS.find(k => k.id === f.last_knock_emoji)
-              : null;
-            return (
-              <NintendoCard key={f.friend_id} style={styles.knockCard}>
-                <View style={styles.knockRow}>
-                  <PixelAvatar avatarData={f.avatar_data} size={28} />
-                  <View style={styles.knockInfo}>
-                    <Text style={styles.knockNickname} numberOfLines={1}>
-                      {f.nickname}
-                    </Text>
-                    <View style={styles.knockLabelRow}>
-                      {knockIcon && (
-                        <Image
-                          source={knockIcon.icon}
-                          style={styles.knockLabelIcon}
-                        />
-                      )}
-                      <Text style={styles.knockLabel}>
-                        {knockIcon
-                          ? knockIcon.label
-                          : `인사를 ${f.unseen_knocks}번 보냈어`}
-                      </Text>
+            /> */}
+                <Text style={styles.sectionTitleAccent}>인사가 왔어!</Text>
+              </View>
+              {unseenFriends.map(f => {
+                const knockIcon = f.last_knock_emoji
+                  ? KNOCK_ICONS.find(k => k.id === f.last_knock_emoji)
+                  : null;
+                return (
+                  <NintendoCard key={f.friend_id} style={styles.knockCard}>
+                    <View style={styles.knockRow}>
+                      <PixelAvatar avatarData={f.avatar_data} size={28} />
+                      <View style={styles.knockInfo}>
+                        <Text style={styles.knockNickname} numberOfLines={1}>
+                          {f.nickname}
+                        </Text>
+                        <View style={styles.knockLabelRow}>
+                          {knockIcon && (
+                            <Image
+                              source={knockIcon.icon}
+                              style={styles.knockLabelIcon}
+                            />
+                          )}
+                          <Text style={styles.knockLabel}>
+                            {knockIcon
+                              ? knockIcon.label
+                              : `인사를 ${f.unseen_knocks}번 보냈어`}
+                          </Text>
+                        </View>
+                      </View>
+                      <NintendoButton
+                        title="확인"
+                        variant="muted"
+                        small
+                        onPress={() => markKnocksSeen(f.friend_id)}
+                      />
                     </View>
-                  </View>
+                  </NintendoCard>
+                );
+              })}
+            </View>
+          )}
+
+          {/* 인사 요청 결과 알림 */}
+          {knockNotifications.length > 0 && (
+            <NintendoCard style={styles.notiCard}>
+              {knockNotifications.map(n => (
+                <View key={n.to_user_id} style={styles.notiRow}>
+                  <PixelAvatar avatarData={n.avatar_data} size={28} />
+                  <Text
+                    style={[
+                      styles.notiText,
+                      {
+                        color:
+                          n.status === 'accepted'
+                            ? colors.nintendoGreen
+                            : colors.muted,
+                      },
+                    ]}
+                    numberOfLines={2}
+                  >
+                    {n.status === 'accepted'
+                      ? `${n.nickname}님이 인사를 받기로 했어!`
+                      : `${n.nickname}님이 조용히 쉬고 싶대`}
+                  </Text>
                   <NintendoButton
                     title="확인"
                     variant="muted"
                     small
-                    onPress={() => markKnocksSeen(f.friend_id)}
+                    onPress={() => markNotificationSeen(n.to_user_id, n.status)}
                   />
                 </View>
-              </NintendoCard>
-            );
-          })}
-        </View>
-      )}
+              ))}
+            </NintendoCard>
+          )}
 
-      {/* 인사 요청 결과 알림 */}
-      {knockNotifications.length > 0 && (
-        <NintendoCard style={styles.notiCard}>
-          {knockNotifications.map(n => (
-            <View key={n.to_user_id} style={styles.notiRow}>
-              <PixelAvatar avatarData={n.avatar_data} size={28} />
-              <Text
-                style={[
-                  styles.notiText,
-                  {
-                    color:
-                      n.status === 'accepted'
-                        ? colors.nintendoGreen
-                        : colors.muted,
-                  },
-                ]}
-                numberOfLines={2}
-              >
-                {n.status === 'accepted'
-                  ? `${n.nickname}님이 인사를 받기로 했어!`
-                  : `${n.nickname}님이 조용히 쉬고 싶대`}
+          {/* 마을 이웃 타이틀 + 인사 수신 토글 */}
+          <View style={styles.Title}>
+            <Text style={styles.friendsTitle}>
+              마을 이웃 ({friends.length})
+            </Text>
+            <Pressable
+              onPress={handleToggleAllowKnocks}
+              style={styles.toggleRow}
+            >
+              {({ pressed }) => (
+                <>
+                  <View
+                    style={[
+                      styles.toggleTrack,
+                      {
+                        backgroundColor:
+                          profile?.allow_knocks !== false
+                            ? colors.nintendoGreen
+                            : colors.muted,
+                        opacity: profile?.allow_knocks !== false ? 1 : 0.4,
+                      },
+                      pressed && {
+                        transform: [{ translateY: 2 }],
+                        shadowOffset: { width: 0, height: 0 },
+                      },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.toggleKnob,
+                        profile?.allow_knocks !== false
+                          ? styles.toggleKnobOn
+                          : styles.toggleKnobOff,
+                      ]}
+                    />
+                  </View>
+                  <Text style={styles.toggleText}>
+                    {profile?.allow_knocks !== false
+                      ? '인사 받는 중'
+                      : '인사 안 받는 중'}
+                  </Text>
+                </>
+              )}
+            </Pressable>
+          </View>
+
+          {friendsLoading && (
+            <View style={styles.loadingBox}>
+              <LoadingSpinner />
+              <Text style={styles.loadingText}>이웃 소식 확인 중...</Text>
+            </View>
+          )}
+
+          {!friendsLoading && friends.length === 0 && (
+            <NintendoCard style={styles.emptyCard}>
+              <Image
+                source={require('../assets/icons/tree.png')}
+                style={styles.emptyIcon}
+              />
+              <Text style={styles.emptyTitle}>아직 마을에 이웃이 없어</Text>
+              <Text style={styles.emptySub}>
+                초대장을 보내서 이웃을 불러보자
               </Text>
               <NintendoButton
-                title="확인"
-                variant="muted"
-                small
-                onPress={() => markNotificationSeen(n.to_user_id, n.status)}
+                title="초대장 보내기"
+                variant="accent"
+                icon={require('../assets/icons/mail.png')}
+                onPress={() => setShowInvite(true)}
               />
-            </View>
-          ))}
-        </NintendoCard>
-      )}
-
-      {/* 마을 이웃 타이틀 + 뷰 토글 + 인사 수신 토글 */}
-      <View style={styles.Title}>
-        <Text style={styles.friendsTitle}>마을 이웃 ({friends.length})</Text>
-        <View style={styles.viewToggleRow}>
-          <Pressable
-            onPress={() => setViewMode('list')}
-            style={{
-              ...styles.viewToggleBtn,
-              backgroundColor:
-                viewMode === 'list' ? colors.accent : colors.cardBg,
-            }}
-          >
-            <Text
-              style={{
-                ...styles.viewToggleText,
-                color: viewMode === 'list' ? colors.white : colors.muted,
-              }}
-            >
-              목록
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setViewMode('village')}
-            style={{
-              ...styles.viewToggleBtn,
-              backgroundColor:
-                viewMode === 'village' ? colors.accent : colors.cardBg,
-            }}
-          >
-            <Text
-              style={{
-                ...styles.viewToggleText,
-                color: viewMode === 'village' ? colors.white : colors.muted,
-              }}
-            >
-              마을
-            </Text>
-          </Pressable>
-        </View>
-        <Pressable onPress={handleToggleAllowKnocks} style={styles.toggleRow}>
-          {({ pressed }) => (
-            <>
-              <View
-                style={[
-                  styles.toggleTrack,
-                  {
-                    backgroundColor:
-                      profile?.allow_knocks !== false
-                        ? colors.nintendoGreen
-                        : colors.muted,
-                    opacity: profile?.allow_knocks !== false ? 1 : 0.4,
-                  },
-                  pressed && {
-                    transform: [{ translateY: 2 }],
-                    shadowOffset: { width: 0, height: 0 },
-                  },
-                ]}
-              >
-                <View
-                  style={[
-                    styles.toggleKnob,
-                    profile?.allow_knocks !== false
-                      ? styles.toggleKnobOn
-                      : styles.toggleKnobOff,
-                  ]}
-                />
-              </View>
-              <Text style={styles.toggleText}>
-                {profile?.allow_knocks !== false
-                  ? '인사 받는 중'
-                  : '인사 안 받는 중'}
-              </Text>
-            </>
+            </NintendoCard>
           )}
-        </Pressable>
-      </View>
-
-      {friendsLoading && (
-        <View style={styles.loadingBox}>
-          <LoadingSpinner />
-          <Text style={styles.loadingText}>이웃 소식 확인 중...</Text>
-        </View>
-      )}
-
-      {!friendsLoading && friends.length === 0 && (
-        <NintendoCard style={styles.emptyCard}>
-          <Image
-            source={require('../assets/icons/tree.png')}
-            style={styles.emptyIcon}
-          />
-          <Text style={styles.emptyTitle}>아직 마을에 이웃이 없어</Text>
-          <Text style={styles.emptySub}>초대장을 보내서 이웃을 불러보자</Text>
-          <NintendoButton
-            title="초대장 보내기"
-            variant="accent"
-            icon={require('../assets/icons/mail.png')}
-            onPress={() => setShowInvite(true)}
-          />
-        </NintendoCard>
+        </>
       )}
     </>
   );
@@ -614,16 +636,18 @@ export default function DashboardScreen() {
           myNickname={profile?.nickname || '나'}
           myUserId={user?.id}
           onFriendPress={friend => handleKnock(friend.friend_id)}
+          weather={weather}
+          isAdmin={isAdmin}
         />
       )}
       <View style={styles.footer}>
         <Image
-          source={require('../assets/icons/shine.png')}
+          source={require('../assets/icons/tree.png')}
           style={styles.footerIcon}
         />
-        <Text style={styles.footerText}>가끔 들르는 것만으로도 충분해요</Text>
+        <Text style={styles.footerText}>여기선 아무것도 안 해도 괜찮아</Text>
         <Image
-          source={require('../assets/icons/shine.png')}
+          source={require('../assets/icons/tree.png')}
           style={styles.footerIcon}
         />
       </View>
@@ -644,6 +668,8 @@ export default function DashboardScreen() {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        contentInset={{ top: 60 }}
+        contentOffset={{ x: 0, y: -60 }}
         refreshing={refreshing}
         onRefresh={onRefresh}
       />
@@ -784,9 +810,61 @@ export default function DashboardScreen() {
                         ]}
                       />
                     </View>
-                    <Text style={styles.toggleText}>
+                    {/* <Text style={styles.toggleText}>
                       {pushEnabled ? '알림 켜짐' : '알림 꺼짐'}
-                    </Text>
+                    </Text> */}
+                  </>
+                )}
+              </Pressable>
+            </View>
+
+            <View style={styles.settingsDivider} />
+
+            {/* 위치 정보 토글 */}
+            <View style={styles.pushContainer}>
+              <View style={styles.settingsLabelRow}>
+                <Text style={{ ...styles.settingsLabel, marginBottom: 0 }}>
+                  위치 정보
+                </Text>
+                <Text style={styles.settingsLabelHint}>
+                  {locationGranted
+                    ? '현재 위치의 날씨를 보여줘'
+                    : '허용하면 내 위치 날씨를 볼 수 있어'}
+                </Text>
+              </View>
+              <Pressable
+                onPress={() => Linking.openSettings()}
+                style={styles.toggleRow}
+              >
+                {({ pressed }) => (
+                  <>
+                    <View
+                      style={[
+                        styles.toggleTrack,
+                        {
+                          backgroundColor: locationGranted
+                            ? colors.nintendoGreen
+                            : colors.muted,
+                          opacity: locationGranted ? 1 : 0.4,
+                        },
+                        pressed && {
+                          transform: [{ translateY: 2 }],
+                          shadowOffset: { width: 0, height: 0 },
+                        },
+                      ]}
+                    >
+                      <View
+                        style={[
+                          styles.toggleKnob,
+                          locationGranted
+                            ? styles.toggleKnobOn
+                            : styles.toggleKnobOff,
+                        ]}
+                      />
+                    </View>
+                    {/* <Text style={styles.toggleText}>
+                      {locationGranted ? '허용됨' : '허용 안 됨'}
+                    </Text> */}
                   </>
                 )}
               </Pressable>
@@ -1236,7 +1314,6 @@ function useStyles(colors: ColorScheme) {
           alignSelf: 'center',
           width: '100%',
           paddingHorizontal: Spacing.lg,
-          paddingTop: 60,
           paddingBottom: 40,
         },
         // 헤더
@@ -1373,7 +1450,7 @@ function useStyles(colors: ColorScheme) {
         sectionTitleAccent: {
           fontFamily: Fonts.bold,
           fontSize: FontSizes.xs,
-          color: colors.accent,
+          color: colors.nintendoBlue,
         },
         reqRow: {
           flexDirection: 'row',

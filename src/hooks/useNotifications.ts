@@ -18,7 +18,15 @@ export function useNotifications(userId: string | undefined) {
 
       if (!enabled) return;
 
-      // FCM 토큰 가져오기
+      // APNS 토큰이 준비될 때까지 대기 후 FCM 토큰 가져오기
+      if (Platform.OS === 'ios') {
+        let apns = await messaging().getAPNSToken();
+        if (!apns) {
+          await new Promise(res => setTimeout(res, 1500));
+          apns = await messaging().getAPNSToken();
+        }
+        if (!apns) return;
+      }
       const token = await messaging().getToken();
       console.log('[FCM] Token:', token);
       if (token && !tokenSaved.current) {
@@ -48,6 +56,10 @@ export function useNotifications(userId: string | undefined) {
           authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
           authStatus === messaging.AuthorizationStatus.PROVISIONAL;
         if (enabled) {
+          if (Platform.OS === 'ios') {
+            const apns = await messaging().getAPNSToken();
+            if (!apns) return;
+          }
           const token = await messaging().getToken();
           if (token) {
             await saveToken(userId, token);
@@ -82,6 +94,10 @@ async function saveToken(userId: string, token: string) {
 
 export async function removeToken(userId: string) {
   try {
+    if (Platform.OS === 'ios') {
+      const apns = await messaging().getAPNSToken();
+      if (!apns) return;
+    }
     const token = await messaging().getToken();
     if (token) {
       await supabase

@@ -85,28 +85,6 @@ export default function VillageCharacter({
           alignItems: 'center',
           transform: [{scale: pressed ? 0.9 : 1}],
         })}>
-        {/* 채팅 말풍선 */}
-        {chatMessage && (
-          <View style={{
-            ...styles.chatBubble,
-            ...(isChatWhisper ? {borderColor: colors.nintendoBlue} : {}),
-          }}>
-            {isChatWhisper && (
-              <Text style={styles.whisperLabel}>귓속말</Text>
-            )}
-            <Text style={styles.chatText} numberOfLines={2}>
-              {chatMessage}
-            </Text>
-            <View style={{
-              ...styles.chatTriangle,
-              ...(isChatWhisper ? {borderTopColor: colors.nintendoBlue} : {}),
-            }} />
-          </View>
-        )}
-        {/* 체크인 시간 (채팅 없을 때만) */}
-        {!chatMessage && checkinLabel !== '' && (
-          <Text style={styles.checkinLabel}>{checkinLabel}</Text>
-        )}
         <View>
           <PixelAvatar avatarData={avatarData} size={size} />
           {isOnline !== undefined && (
@@ -121,6 +99,32 @@ export default function VillageCharacter({
           )}
         </View>
         <Text style={isMe ? styles.myName : styles.name}>{displayName}</Text>
+        {/* 채팅 말풍선 — absolute로 캐릭터 위에 띄움 */}
+        {chatMessage && (
+          <View style={{
+            ...styles.chatBubble,
+            position: 'absolute',
+            bottom: '100%',
+            ...(isChatWhisper ? {borderColor: colors.nintendoBlue} : {}),
+          }}>
+            {isChatWhisper && (
+              <Text style={styles.whisperLabel}>귓속말</Text>
+            )}
+            <Text style={styles.chatText} numberOfLines={2}>
+              {chatMessage}
+            </Text>
+            <View style={{
+              ...styles.chatTriangle,
+              ...(isChatWhisper ? {borderTopColor: colors.nintendoBlue} : {}),
+            }} />
+          </View>
+        )}
+        {/* 체크인 시간 — absolute로 캐릭터 위에 띄움 */}
+        {!chatMessage && checkinLabel !== '' && (
+          <Text style={{...styles.checkinLabel, position: 'absolute', bottom: '100%'}}>
+            {checkinLabel}
+          </Text>
+        )}
       </Pressable>
     </Animated.View>
   );
