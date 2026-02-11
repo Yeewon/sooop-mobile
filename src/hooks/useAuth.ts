@@ -35,6 +35,7 @@ export function useAuth() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // 프로필 조회 (없으면 invite_code 보정만)
   const loadProfile = async (userId: string) => {
     const {data} = await supabase
       .from('profiles')
@@ -43,7 +44,36 @@ export function useAuth() {
       .single();
 
     if (data) {
+      // 기존 프로필에 invite_code가 없으면 생성
+      if (!data.invite_code) {
+        const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+        await supabase
+          .from('profiles')
+          .update({invite_code: code})
+          .eq('id', userId);
+        data.invite_code = code;
+      }
       setProfile(data as Profile);
+    }
+    setLoading(false);
+  };
+
+  // 회원가입 시 프로필 생성 (닉네임 + invite_code 포함)
+  const createProfile = async (userId: string, nickname: string, avatarData?: AvatarData | null) => {
+    const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const {data: created} = await supabase
+      .from('profiles')
+      .insert({
+        id: userId,
+        nickname,
+        invite_code: inviteCode,
+        avatar_data: avatarData ?? null,
+      })
+      .select('*')
+      .single();
+
+    if (created) {
+      setProfile(created as Profile);
     }
     setLoading(false);
   };
@@ -67,6 +97,10 @@ export function useAuth() {
       (!data.user.identities || data.user.identities.length === 0)
     ) {
       throw {message: 'already_registered', status: 409};
+    }
+    // 회원가입 직후 프로필 생성 (invite_code 포함)
+    if (data.user) {
+      await createProfile(data.user.id, nickname, avatarData);
     }
     return data;
   };

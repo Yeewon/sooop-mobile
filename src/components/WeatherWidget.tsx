@@ -225,11 +225,13 @@ export default function WeatherWidget({
   const styles = useStyles(colors);
   const [showConfirm, setShowConfirm] = useState(false);
   const hasWeather = !loading && weather;
-  const bg = hasWeather ? (WEATHER_BG[weather.icon] || DEFAULT_BG) : null;
+  const bg = hasWeather ? WEATHER_BG[weather.icon] || DEFAULT_BG : null;
   const bgColor = hasWeather ? (isDark ? bg![1] : bg![0]) : colors.cardBg;
   const textColor = isDark ? '#F0EDE8' : '#1A1000';
   const mutedColor = isDark ? '#A09888' : '#5A4A30';
-  const weatherMsg = hasWeather ? getWeatherMessage(weather.icon, weather.temp) : '';
+  const weatherMsg = hasWeather
+    ? getWeatherMessage(weather.icon, weather.temp)
+    : '';
 
   return (
     <>
@@ -269,12 +271,31 @@ export default function WeatherWidget({
           <>
             <View style={styles.weatherRow}>
               <View style={styles.info}>
-                <View style={{ ...styles.skeletonBlock, width: 48, height: 20 }} />
-                <View style={{ ...styles.skeletonBlock, width: 36, height: 16 }} />
+                <View
+                  style={{ ...styles.skeletonBlock, width: 48, height: 20 }}
+                />
+                <View
+                  style={{ ...styles.skeletonBlock, width: 36, height: 16 }}
+                />
               </View>
-              <View style={{ ...styles.skeletonBlock, width: 40, height: 12, marginLeft: 'auto' }} />
+              <View
+                style={{
+                  ...styles.skeletonBlock,
+                  width: 40,
+                  height: 12,
+                  marginLeft: 'auto',
+                }}
+              />
             </View>
-            <View style={{ ...styles.skeletonBlock, width: 160, height: 14, marginHorizontal: Spacing.xs, marginBottom: Spacing.sm }} />
+            <View
+              style={{
+                ...styles.skeletonBlock,
+                width: 160,
+                height: 14,
+                marginHorizontal: Spacing.xs,
+                marginBottom: Spacing.sm,
+              }}
+            />
           </>
         )}
 

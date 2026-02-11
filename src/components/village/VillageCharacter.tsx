@@ -1,15 +1,15 @@
-import React, {useMemo, useEffect} from 'react';
-import {Text, Pressable, StyleSheet, View} from 'react-native';
+import React, { useMemo, useEffect } from 'react';
+import { Text, Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
 } from 'react-native-reanimated';
 import PixelAvatar from '../PixelAvatar';
-import {useColors} from '../../contexts/ThemeContext';
-import type {ColorScheme} from '../../theme/colors';
-import {Fonts, FontSizes} from '../../theme';
-import type {AvatarData} from '../../shared/types';
+import { useColors } from '../../contexts/ThemeContext';
+import type { ColorScheme } from '../../theme/colors';
+import { Fonts, FontSizes } from '../../theme';
+import type { AvatarData } from '../../shared/types';
 
 interface VillageCharacterProps {
   avatarData: AvatarData | null;
@@ -36,7 +36,7 @@ function formatTime(lastCheckin: string | null): string {
   if (diffHours < 24) return `${diffHours}시간 전`;
   const diffDays = Math.floor(diffHours / 24);
   if (diffDays < 7) return `${diffDays}일 전`;
-  return date.toLocaleDateString('ko-KR', {month: 'short', day: 'numeric'});
+  return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
 }
 
 export default function VillageCharacter({
@@ -64,11 +64,11 @@ export default function VillageCharacter({
   const posY = useSharedValue(targetY);
 
   useEffect(() => {
-    posX.value = withTiming(targetX, {duration: 150});
+    posX.value = withTiming(targetX, { duration: 150 });
   }, [targetX, posX]);
 
   useEffect(() => {
-    posY.value = withTiming(targetY, {duration: 150});
+    posY.value = withTiming(targetY, { duration: 150 });
   }, [targetY, posY]);
 
   const animStyle = useAnimatedStyle(() => ({
@@ -81,19 +81,18 @@ export default function VillageCharacter({
     <Animated.View style={animStyle}>
       <Pressable
         onPress={onPress}
-        style={({pressed}) => ({
+        style={({ pressed }) => ({
           alignItems: 'center',
-          transform: [{scale: pressed ? 0.9 : 1}],
-        })}>
+          transform: [{ scale: pressed ? 0.9 : 1 }],
+        })}
+      >
         <View>
           <PixelAvatar avatarData={avatarData} size={size} />
           {isOnline !== undefined && (
             <View
               style={{
                 ...styles.onlineDot,
-                backgroundColor: isOnline
-                  ? colors.nintendoGreen
-                  : colors.muted,
+                backgroundColor: isOnline ? colors.nintendoGreen : colors.muted,
               }}
             />
           )}
@@ -101,27 +100,37 @@ export default function VillageCharacter({
         <Text style={isMe ? styles.myName : styles.name}>{displayName}</Text>
         {/* 채팅 말풍선 — absolute로 캐릭터 위에 띄움 */}
         {chatMessage && (
-          <View style={{
-            ...styles.chatBubble,
-            position: 'absolute',
-            bottom: '100%',
-            ...(isChatWhisper ? {borderColor: colors.nintendoBlue} : {}),
-          }}>
-            {isChatWhisper && (
-              <Text style={styles.whisperLabel}>귓속말</Text>
-            )}
-            <Text style={styles.chatText} numberOfLines={2}>
+          <View
+            style={{
+              ...styles.chatBubble,
+              position: 'absolute',
+              bottom: '100%',
+              ...(isChatWhisper ? { borderColor: colors.nintendoBlue } : {}),
+            }}
+          >
+            {isChatWhisper && <Text style={styles.whisperLabel}>귓속말</Text>}
+            <Text style={styles.chatText} numberOfLines={3}>
               {chatMessage}
             </Text>
-            <View style={{
-              ...styles.chatTriangle,
-              ...(isChatWhisper ? {borderTopColor: colors.nintendoBlue} : {}),
-            }} />
+            <View
+              style={{
+                ...styles.chatTriangle,
+                ...(isChatWhisper
+                  ? { borderTopColor: colors.nintendoBlue }
+                  : {}),
+              }}
+            />
           </View>
         )}
         {/* 체크인 시간 — absolute로 캐릭터 위에 띄움 */}
         {!chatMessage && checkinLabel !== '' && (
-          <Text style={{...styles.checkinLabel, position: 'absolute', bottom: '100%'}}>
+          <Text
+            style={{
+              ...styles.checkinLabel,
+              position: 'absolute',
+              bottom: '100%',
+            }}
+          >
             {checkinLabel}
           </Text>
         )}
@@ -140,7 +149,7 @@ function useStyles(colors: ColorScheme) {
           color: colors.white,
           textAlign: 'center' as const,
           textShadowColor: 'rgba(0,0,0,0.6)',
-          textShadowOffset: {width: 1, height: 1},
+          textShadowOffset: { width: 1, height: 1 },
           textShadowRadius: 2,
           marginBottom: 1,
         },
@@ -151,7 +160,7 @@ function useStyles(colors: ColorScheme) {
           textAlign: 'center',
           marginTop: 2,
           textShadowColor: 'rgba(0,0,0,0.6)',
-          textShadowOffset: {width: 1, height: 1},
+          textShadowOffset: { width: 1, height: 1 },
           textShadowRadius: 2,
         },
         myName: {
@@ -161,7 +170,7 @@ function useStyles(colors: ColorScheme) {
           textAlign: 'center',
           marginTop: 2,
           textShadowColor: 'rgba(0,0,0,0.6)',
-          textShadowOffset: {width: 1, height: 1},
+          textShadowOffset: { width: 1, height: 1 },
           textShadowRadius: 2,
         },
         onlineDot: {
@@ -179,7 +188,7 @@ function useStyles(colors: ColorScheme) {
           borderRadius: 8,
           borderWidth: 2,
           borderColor: colors.cardBorder,
-          paddingHorizontal: 6,
+          paddingHorizontal: 4,
           paddingVertical: 3,
           maxWidth: 120,
           marginBottom: 4,

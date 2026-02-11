@@ -461,7 +461,7 @@ export default function VillageView({
                     {myChatIsWhisper && (
                       <Text style={styles.whisperLabel}>귓속말</Text>
                     )}
-                    <Text style={styles.meChatText} numberOfLines={2}>
+                    <Text style={styles.meChatText} numberOfLines={3}>
                       {myChatMsg}
                     </Text>
                     <View
@@ -548,6 +548,11 @@ export default function VillageView({
         </View>
       </View>
 
+      {/* 귓속말 안내 */}
+      <Text style={styles.whisperHint}>
+        캐릭터를 탭하면 귓속말을 보낼 수 있어
+      </Text>
+
       {/* 귓속말 표시 */}
       {whisperFriend && (
         <View style={styles.whisperTag}>
@@ -559,11 +564,6 @@ export default function VillageView({
           </Pressable>
         </View>
       )}
-
-      {/* 귓속말 안내 */}
-      <Text style={styles.whisperHint}>
-        캐릭터를 탭하면 귓속말을 보낼 수 있어
-      </Text>
 
       {/* 채팅 입력 */}
       <View style={styles.chatRow}>
@@ -732,7 +732,7 @@ function useStyles(colors: ColorScheme) {
           borderColor: colors.nintendoYellow,
           paddingHorizontal: 6,
           paddingVertical: 3,
-          maxWidth: 120,
+          maxWidth: 200,
           marginBottom: 4,
           alignItems: 'center',
         },
