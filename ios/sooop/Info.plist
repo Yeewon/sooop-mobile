@@ -65,6 +65,10 @@
 			<string>com.greenonion.sooop</string>
 		</dict>
 	</array>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>마을 친구에게 음성으로 이야기하기 위해 마이크 접근이 필요해요</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>음성을 텍스트로 변환하기 위해 음성 인식이 필요해요</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>사진 프레임을 저장하기 위해 사진 라이브러리 접근이 필요해요</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>

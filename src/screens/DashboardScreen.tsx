@@ -49,6 +49,7 @@ import AvatarBuilderModal from '../modals/AvatarBuilderModal';
 import PhotoFrameModal from '../modals/PhotoFrameModal';
 import NicknameEditModal from '../modals/NicknameEditModal';
 import PrivacyInfoModal from '../modals/PrivacyInfoModal';
+import {useNavigation} from '@react-navigation/native';
 import VillageView from '../components/village/VillageView';
 import WeatherWidget from '../components/WeatherWidget';
 import { useWeather } from '../hooks/useWeather';
@@ -56,6 +57,7 @@ import { useWeather } from '../hooks/useWeather';
 export default function DashboardScreen() {
   const colors = useColors();
   const styles = useStyles(colors);
+  const navigation = useNavigation<any>();
   const {
     user,
     profile,
@@ -636,6 +638,7 @@ export default function DashboardScreen() {
           myNickname={profile?.nickname || '나'}
           myUserId={user?.id}
           onFriendPress={friend => handleKnock(friend.friend_id)}
+          onNpcChat={npcType => navigation.navigate('NpcChat', {npcType})}
           weather={weather}
           isAdmin={isAdmin}
         />

@@ -11,6 +11,10 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		AC618AC12F3DBA03005C3EF1 /* waves.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = AC618ABF2F3DBA03005C3EF1 /* waves.mp3 */; };
+		AC618AC22F3DBA03005C3EF1 /* fireplace.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = AC618ABD2F3DBA03005C3EF1 /* fireplace.mp3 */; };
+		AC618AC32F3DBA03005C3EF1 /* rain.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = AC618ABE2F3DBA03005C3EF1 /* rain.mp3 */; };
+		AC618AC42F3DBA03005C3EF1 /* crickets.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = AC618ABC2F3DBA03005C3EF1 /* crickets.mp3 */; };
 		B2D2C4935EB34E3B9027F136 /* Galmuri11.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B68091086F484366A29EDD11 /* Galmuri11.ttf */; };
 		D8E8C2D843DB7EF7E253CBCD /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		EFA9C58FA2084A2FAB4DF6C1 /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BD8F637B54684EE888E3F3AA /* Colors.xcassets */; };
@@ -31,6 +35,10 @@
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = sooop/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = sooop/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		A1B2C3D4E5F6A7B8C9D0E1F2 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "sooop/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		AC618ABC2F3DBA03005C3EF1 /* crickets.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = crickets.mp3; sourceTree = "<group>"; };
+		AC618ABD2F3DBA03005C3EF1 /* fireplace.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = fireplace.mp3; sourceTree = "<group>"; };
+		AC618ABE2F3DBA03005C3EF1 /* rain.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = rain.mp3; sourceTree = "<group>"; };
+		AC618ABF2F3DBA03005C3EF1 /* waves.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = waves.mp3; sourceTree = "<group>"; };
 		AC706A932F39E66B001A48E6 /* sooop.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = sooop.entitlements; path = sooop/sooop.entitlements; sourceTree = "<group>"; };
 		B68091086F484366A29EDD11 /* Galmuri11.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Galmuri11.ttf; path = ../src/assets/fonts/Galmuri11.ttf; sourceTree = "<group>"; };
 		BD8F637B54684EE888E3F3AA /* Colors.xcassets */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = folder.assetcatalog; name = Colors.xcassets; path = sooop/Colors.xcassets; sourceTree = "<group>"; };
@@ -85,6 +93,7 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				AC618AC02F3DBA03005C3EF1 /* sounds */,
 				13B07FAE1A68108700A75B9A /* sooop */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
@@ -103,6 +112,17 @@
 				13B07F961A680F5B00A75B9A /* sooop.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		AC618AC02F3DBA03005C3EF1 /* sounds */ = {
+			isa = PBXGroup;
+			children = (
+				AC618ABC2F3DBA03005C3EF1 /* crickets.mp3 */,
+				AC618ABD2F3DBA03005C3EF1 /* fireplace.mp3 */,
+				AC618ABE2F3DBA03005C3EF1 /* rain.mp3 */,
+				AC618ABF2F3DBA03005C3EF1 /* waves.mp3 */,
+			);
+			path = sounds;
 			sourceTree = "<group>";
 		};
 		BBD78D7AC51CEA395F1C20DB /* Pods */ = {
@@ -184,6 +204,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AC618AC12F3DBA03005C3EF1 /* waves.mp3 in Resources */,
+				AC618AC22F3DBA03005C3EF1 /* fireplace.mp3 in Resources */,
+				AC618AC32F3DBA03005C3EF1 /* rain.mp3 in Resources */,
+				AC618AC42F3DBA03005C3EF1 /* crickets.mp3 in Resources */,
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				F2E1D0C9B8A7F6E5D4C3B2A1 /* GoogleService-Info.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,

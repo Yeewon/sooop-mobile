@@ -12,6 +12,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Modal,
   type GestureResponderEvent,
 } from 'react-native';
 import Animated, {
@@ -34,6 +35,11 @@ import { useVillagePositions } from './useVillagePositions';
 import { useVillageRealtime } from './useVillageRealtime';
 import VillageCharacter from './VillageCharacter';
 import VillageBackground from './VillageBackground';
+import VillageNPCs from './VillageNPCs';
+import Svg, { Rect } from 'react-native-svg';
+import { NPC_DEFS } from './npcDefinitions';
+import type { NpcSpawn, NpcType } from './npcDefinitions';
+import { NPC_NAMES, NPC_TITLES, NPC_PERSONALITIES } from './npcResponses';
 import SpeechBubble from './SpeechBubble';
 import PixelAvatar from '../PixelAvatar';
 import WeatherParticles, { WeatherGround } from './WeatherParticles';
@@ -85,6 +91,7 @@ interface VillageViewProps {
   myNickname: string;
   myUserId: string | undefined;
   onFriendPress: (friend: FriendWithStatus) => void;
+  onNpcChat: (npcType: NpcType) => void;
   weather?: WeatherData | null;
   isAdmin?: boolean;
 }
@@ -95,6 +102,7 @@ export default function VillageView({
   myNickname,
   myUserId,
   onFriendPress,
+  onNpcChat,
   weather,
   isAdmin,
 }: VillageViewProps) {
@@ -211,6 +219,15 @@ export default function VillageView({
   const maxY = WORLD_HEIGHT - MY_CHARACTER_SIZE - MOVE_MARGIN;
   const minCamX = -(WORLD_WIDTH - VILLAGE_WIDTH);
   const minCamY = -(WORLD_HEIGHT - VILLAGE_VISIBLE_HEIGHT);
+
+  // NPC 속얘기
+  const handleNpcTap = useCallback(
+    (npc: NpcSpawn) => {
+      onNpcChat(npc.def.type);
+    },
+    [onNpcChat],
+  );
+  const [showNpcInfo, setShowNpcInfo] = useState(false);
 
   // Speech bubble
   const [selectedFriend, setSelectedFriend] = useState<{
@@ -329,10 +346,24 @@ export default function VillageView({
 
   return (
     <View>
-      <View style={styles.noticeBanner}>
-        <Text style={styles.noticeBannerText}>
-          메시지는 10초 후 사라지며 어디에도 저장되지 않아
-        </Text>
+      <View style={styles.bannerRow}>
+        <View style={{ ...styles.acBanner }}>
+          <Text style={styles.acBannerText}>메시지는 10초 후 사라져요</Text>
+        </View>
+        <Pressable
+          style={({ pressed }) => ({
+            ...styles.acBanner,
+            ...(pressed
+              ? {
+                  transform: [{ translateY: 3 }],
+                  shadowOffset: { width: 0, height: 0 },
+                }
+              : {}),
+          })}
+          onPress={() => setShowNpcInfo(true)}
+        >
+          <Text style={styles.acBannerText}>아무도 모르는 비밀 이야기</Text>
+        </Pressable>
       </View>
 
       {/* 접속 중인 유저 */}
@@ -431,6 +462,9 @@ export default function VillageView({
               ambience.particleType === 'snow') && (
               <WeatherGround type={ambience.particleType} />
             )}
+
+            {/* NPC 동물 */}
+            <VillageNPCs onNpcTap={handleNpcTap} />
 
             {/* 내 캐릭터 */}
             <Animated.View style={meAnimStyle}>
@@ -670,6 +704,68 @@ export default function VillageView({
           </View>
         </View>
       )}
+
+      {/* NPC 캐릭터 소개 모달 */}
+      <Modal
+        visible={showNpcInfo}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowNpcInfo(false)}
+      >
+        <Pressable
+          style={styles.npcInfoOverlay}
+          onPress={() => setShowNpcInfo(false)}
+        >
+          <Pressable
+            style={styles.npcInfoCard}
+            onPress={e => e.stopPropagation()}
+          >
+            <Text style={styles.npcInfoTitle}>마을 친구들</Text>
+            <View style={styles.npcInfoList}>
+              <View style={styles.npcInfoNoticeBanner}>
+                <Text style={styles.npcInfoNoticeText}>
+                  하루 30회까지 대화할 수 있어.{'\n'}대화는 어디에도 저장되지
+                  않아. 마음 놓고 비밀을 털어놔도 돼!
+                </Text>
+              </View>
+
+              {NPC_DEFS.map(def => (
+                <View key={def.type} style={styles.npcInfoItem}>
+                  <View style={styles.npcInfoArt}>
+                    <Svg width={def.renderWidth} height={def.renderHeight}>
+                      {def.art.grid.map((row, ry) =>
+                        row.map((cell, rx) =>
+                          cell === 0 ? null : (
+                            <Rect
+                              key={`${ry}-${rx}`}
+                              x={rx * def.art.pixelSize}
+                              y={ry * def.art.pixelSize}
+                              width={def.art.pixelSize}
+                              height={def.art.pixelSize}
+                              fill={def.art.palette[cell]}
+                            />
+                          ),
+                        ),
+                      )}
+                    </Svg>
+                  </View>
+                  <View style={styles.npcInfoTextWrap}>
+                    <Text style={styles.npcInfoName}>
+                      {NPC_NAMES[def.type]} · {NPC_TITLES[def.type]}
+                    </Text>
+                    <Text style={styles.npcInfoDesc}>
+                      {NPC_PERSONALITIES[def.type]}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+            <Text style={styles.npcInfoHint}>
+              마을에서 주민을 탭해서 대화해봐!
+            </Text>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -803,17 +899,111 @@ function useStyles(colors: ColorScheme) {
           fontSize: FontSizes.xs,
           textAlign: 'center',
         },
-        noticeBanner: {
+        // AC-style banners
+        bannerRow: {
+          flexDirection: 'row',
+          gap: Spacing.sm,
           marginTop: Spacing.sm,
-          backgroundColor: colors.shadowColor,
-          borderRadius: 10,
-          paddingVertical: 8,
-          paddingHorizontal: 14,
         },
-        noticeBannerText: {
-          fontFamily: Fonts.regular,
+        acBanner: {
+          flex: 1,
+          backgroundColor: colors.cardBg,
+          borderRadius: 12,
+          borderWidth: 2,
+          borderColor: colors.shadowColor,
+          paddingVertical: 8,
+          paddingHorizontal: 10,
+          alignItems: 'center',
+          shadowColor: colors.shadowColor,
+          shadowOffset: { width: 0, height: 3 },
+          shadowOpacity: 1,
+          shadowRadius: 0,
+          elevation: 3,
+        },
+        acBannerText: {
+          fontFamily: Fonts.bold,
           fontSize: 10,
-          color: colors.white,
+          color: colors.foreground,
+          textAlign: 'center',
+        },
+        // NPC 소개 모달
+        npcInfoOverlay: {
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: Spacing.lg,
+        },
+        npcInfoCard: {
+          backgroundColor: colors.cardBg,
+          borderRadius: 16,
+          borderWidth: 3,
+          borderColor: colors.border,
+          padding: Spacing.lg,
+          width: '100%',
+          maxWidth: 320,
+        },
+        npcInfoTitle: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.lg,
+          color: colors.foreground,
+          textAlign: 'center',
+          marginBottom: Spacing.md,
+        },
+        npcInfoList: {
+          gap: Spacing.sm,
+          marginBottom: Spacing.md,
+        },
+        npcInfoItem: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: Spacing.sm,
+          backgroundColor: colors.cardBg,
+          // borderRadius: 10,
+          padding: Spacing.sm,
+          // borderWidth: 2,
+          // borderColor: colors.border,
+          height: 60,
+          marginBottom: Spacing.xs,
+        },
+        npcInfoArt: {
+          // backgroundColor: colors.cardBg,
+          borderRadius: 8,
+          padding: 4,
+          // borderWidth: 2,
+          // borderColor: colors.border,
+        },
+        npcInfoTextWrap: {
+          flex: 1,
+        },
+        npcInfoName: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.sm,
+          color: colors.foreground,
+        },
+        npcInfoDesc: {
+          fontFamily: Fonts.regular,
+          fontSize: FontSizes.xs,
+          color: colors.muted,
+          marginTop: 1,
+        },
+        npcInfoHint: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.xs,
+          color: colors.cardBorder,
+          textAlign: 'center',
+        },
+        npcInfoNoticeBanner: {
+          backgroundColor: colors.background,
+          borderRadius: 10,
+          borderWidth: 2,
+          borderColor: colors.border,
+          padding: Spacing.sm,
+        },
+        npcInfoNoticeText: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.xs,
+          color: colors.nintendoBrown,
           textAlign: 'center',
           lineHeight: 16,
         },
