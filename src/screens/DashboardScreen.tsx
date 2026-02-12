@@ -52,6 +52,10 @@ import PrivacyInfoModal from '../modals/PrivacyInfoModal';
 import {useNavigation} from '@react-navigation/native';
 import VillageView from '../components/village/VillageView';
 import WeatherWidget from '../components/WeatherWidget';
+import DashboardHeader from '../components/dashboard/DashboardHeader';
+import KnockRequestCard from '../components/dashboard/KnockRequestCard';
+import KnockNotificationList from '../components/dashboard/KnockNotificationList';
+import KnockPickerModal from '../components/dashboard/KnockPickerModal';
 import { useWeather } from '../hooks/useWeather';
 
 export default function DashboardScreen() {
@@ -318,78 +322,15 @@ export default function DashboardScreen() {
 
   const listHeader = (
     <>
-      {/* 헤더 */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Pressable onPress={() => setShowAvatarBuilder(true)}>
-            {({ pressed }) => (
-              <NintendoCard
-                style={{
-                  ...styles.avatarBox,
-                  ...(pressed
-                    ? {
-                        transform: [{ translateY: 4 }],
-                        shadowOffset: { width: 0, height: 0 },
-                      }
-                    : {}),
-                }}
-              >
-                <PixelAvatar
-                  avatarData={profile?.avatar_data ?? null}
-                  size={40}
-                />
-              </NintendoCard>
-            )}
-          </Pressable>
-          <Pressable
-            onPress={() => setShowNicknameEdit(true)}
-            style={({ pressed }) => pressed && { opacity: 0.6 }}
-          >
-            <Text style={styles.greeting}>
-              어서 와, {profile?.nickname || '주민'}
-            </Text>
-            <Text style={styles.greetingSub}>이름이나 캐릭터를 눌러봐</Text>
-          </Pressable>
-        </View>
-        <View style={styles.headerRight}>
-          <Pressable
-            onPress={() => setShowInvite(true)}
-            style={({ pressed }) => [
-              styles.headerBtn,
-              pressed && styles.headerBtnPressed,
-            ]}
-          >
-            <Image
-              source={require('../assets/icons/flag.png')}
-              style={styles.headerBtnIcon}
-            />
-          </Pressable>
-          <Pressable
-            onPress={() => setShowSettings(true)}
-            style={({ pressed }) => [
-              styles.headerBtn,
-              pressed && styles.headerBtnPressed,
-            ]}
-          >
-            <Image
-              source={require('../assets/icons/alarm.png')}
-              style={styles.headerBtnIcon}
-            />
-          </Pressable>
-          <Pressable
-            onPress={() => setShowPrivacy(true)}
-            style={({ pressed }) => [
-              styles.headerBtn,
-              pressed && styles.headerBtnPressed,
-            ]}
-          >
-            <Image
-              source={require('../assets/icons/computer.png')}
-              style={styles.headerBtnIcon}
-            />
-          </Pressable>
-        </View>
-      </View>
+      <DashboardHeader
+        nickname={profile?.nickname || '주민'}
+        avatarData={profile?.avatar_data ?? null}
+        onAvatarPress={() => setShowAvatarBuilder(true)}
+        onNicknamePress={() => setShowNicknameEdit(true)}
+        onInvitePress={() => setShowInvite(true)}
+        onSettingsPress={() => setShowSettings(true)}
+        onPrivacyPress={() => setShowPrivacy(true)}
+      />
 
       {/* 뷰 모드 토글 */}
       <View style={{ ...styles.viewToggleRow, marginBottom: Spacing.md }}>
@@ -438,87 +379,16 @@ export default function DashboardScreen() {
             locationGranted={locationGranted}
             dailyMessage={dailyMessage}
           />
-          {/* 받은 인사 요청 */}
-          {knockRequests.length > 0 && (
-            <NintendoCard style={styles.knockReqCard}>
-              <View style={styles.sectionHeader}>
-                <Image
-                  source={require('../assets/icons/mail.png')}
-                  style={styles.sectionIcon}
-                />
-                <Text style={styles.sectionTitleAccent}>인사 요청이 왔어!</Text>
-              </View>
-              {knockRequests.map(req => (
-                <View key={req.from_user_id} style={styles.reqRow}>
-                  <PixelAvatar avatarData={req.avatar_data} size={28} />
-                  <Text style={styles.reqNickname} numberOfLines={1}>
-                    {req.nickname}
-                  </Text>
-                  <NintendoButton
-                    title="괜찮아"
-                    variant="muted"
-                    small
-                    onPress={() => dismissKnockRequest(req.from_user_id)}
-                  />
-                  <NintendoButton
-                    title="수락"
-                    variant="accent"
-                    small
-                    onPress={() => setAcceptConfirm(req.from_user_id)}
-                  />
-                </View>
-              ))}
-            </NintendoCard>
-          )}
+          <KnockRequestCard
+            requests={knockRequests}
+            onDismiss={dismissKnockRequest}
+            onAccept={userId => setAcceptConfirm(userId)}
+          />
 
-          {/* 받은 인사 */}
-          {unseenFriends.length > 0 && (
-            <View style={styles.knockSection}>
-              <View style={styles.sectionHeader}>
-                {/* <Image
-              source={require('../assets/icons/thumb.png')}
-              style={styles.sectionIcon}
-            /> */}
-                <Text style={styles.sectionTitleAccent}>인사가 왔어!</Text>
-              </View>
-              {unseenFriends.map(f => {
-                const knockIcon = f.last_knock_emoji
-                  ? KNOCK_ICONS.find(k => k.id === f.last_knock_emoji)
-                  : null;
-                return (
-                  <NintendoCard key={f.friend_id} style={styles.knockCard}>
-                    <View style={styles.knockRow}>
-                      <PixelAvatar avatarData={f.avatar_data} size={28} />
-                      <View style={styles.knockInfo}>
-                        <Text style={styles.knockNickname} numberOfLines={1}>
-                          {f.nickname}
-                        </Text>
-                        <View style={styles.knockLabelRow}>
-                          {knockIcon && (
-                            <Image
-                              source={knockIcon.icon}
-                              style={styles.knockLabelIcon}
-                            />
-                          )}
-                          <Text style={styles.knockLabel}>
-                            {knockIcon
-                              ? knockIcon.label
-                              : `인사를 ${f.unseen_knocks}번 보냈어`}
-                          </Text>
-                        </View>
-                      </View>
-                      <NintendoButton
-                        title="확인"
-                        variant="muted"
-                        small
-                        onPress={() => markKnocksSeen(f.friend_id)}
-                      />
-                    </View>
-                  </NintendoCard>
-                );
-              })}
-            </View>
-          )}
+          <KnockNotificationList
+            friends={unseenFriends}
+            onMarkSeen={markKnocksSeen}
+          />
 
           {/* 인사 요청 결과 알림 */}
           {knockNotifications.length > 0 && (
@@ -677,38 +547,14 @@ export default function DashboardScreen() {
         onRefresh={onRefresh}
       />
 
-      {/* 인사 아이콘 피커 */}
-      {showKnockPicker && (
-        <Pressable
-          style={styles.overlay}
-          onPress={() => setShowKnockPicker(null)}
-        >
-          <Pressable
-            style={styles.pickerCard}
-            onPress={e => e.stopPropagation()}
-          >
-            <Text style={styles.pickerTitle}>
-              {friends.find(f => f.friend_id === showKnockPicker)?.nickname}
-              에게 어떤 인사?
-            </Text>
-            <View style={styles.pickerGrid}>
-              {KNOCK_ICONS.map(item => (
-                <Pressable
-                  key={item.id}
-                  onPress={() => handleKnock(showKnockPicker, item.id)}
-                  style={({ pressed }) => [
-                    styles.pickerItem,
-                    pressed && styles.headerBtnPressed,
-                  ]}
-                >
-                  <Image source={item.icon} style={styles.pickerIcon} />
-                  <Text style={styles.pickerLabel}>{item.label}</Text>
-                </Pressable>
-              ))}
-            </View>
-          </Pressable>
-        </Pressable>
-      )}
+      <KnockPickerModal
+        visible={!!showKnockPicker}
+        friendName={
+          friends.find(f => f.friend_id === showKnockPicker)?.nickname || ''
+        }
+        onSelect={emojiId => handleKnock(showKnockPicker!, emojiId)}
+        onClose={() => setShowKnockPicker(null)}
+      />
 
       {/* 설정 모달 */}
       {showSettings && (

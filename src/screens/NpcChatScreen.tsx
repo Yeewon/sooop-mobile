@@ -17,6 +17,7 @@ import {
   SafeAreaView,
   Dimensions,
   Alert,
+  Modal,
 } from 'react-native';
 import Svg, { Rect, Circle, RectProps } from 'react-native-svg';
 import Animated, {
@@ -143,6 +144,7 @@ export default function NpcChatScreen({ route, navigation }: Props) {
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
   const [remaining, setRemaining] = useState(DAILY_LIMIT);
+  const [showWelcome, setShowWelcome] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
   const npcName = NPC_NAMES[npcDef.type];
   const limitReached = remaining <= 0;
@@ -156,10 +158,12 @@ export default function NpcChatScreen({ route, navigation }: Props) {
     }
   }, [transcript]);
 
-  // 화면 진입 시 서버에서 남은 횟수 조회
+  // 화면 진입 시 서버에서 남은 횟수 조회 + 환영 모달 표시
   useEffect(() => {
     (async () => {
       try {
+        setTimeout(() => setShowWelcome(true), 500);
+
         const {
           data: { session },
         } = await supabase.auth.getSession();
@@ -181,6 +185,7 @@ export default function NpcChatScreen({ route, navigation }: Props) {
       } catch {
         // 실패 시 기본값 유지
       }
+      // 환영 모달 표시
     })();
   }, []);
 
@@ -637,6 +642,51 @@ export default function NpcChatScreen({ route, navigation }: Props) {
             </View>
           )}
         </View>
+
+        {/* 환영 모달 */}
+        <Modal
+          visible={showWelcome}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowWelcome(false)}
+        >
+          <Pressable
+            style={styles.welcomeOverlay}
+            onPress={() => setShowWelcome(false)}
+          >
+            <Pressable
+              style={styles.welcomeCard}
+              onPress={e => e.stopPropagation()}
+            >
+              <Text style={styles.welcomeTitle}>{npcName}와의 속얘기</Text>
+              <Text style={styles.welcomeText}>
+                하루에 30번까지 이야기할 수 있어!{'\n'}
+                여기서 나눈 이야기는 아무도 모르는{'\n'}
+                우리만의 비밀이야. 편하게 말해줘!
+              </Text>
+              <View style={styles.welcomeNpcWrap}>{npcArt}</View>
+              <View style={styles.welcomeFeature}>
+                <Svg width={16} height={16} viewBox="0 0 7 7">
+                  <Rect x={0} y={2} width={2} height={3} fill={N.nameColor} />
+                  <Rect x={2} y={1} width={1} height={5} fill={N.nameColor} />
+                  <Rect x={3} y={0} width={1} height={7} fill={N.nameColor} />
+                  <Rect x={5} y={1} width={1} height={1} fill={N.star} />
+                  <Rect x={6} y={3} width={1} height={1} fill={N.star} />
+                  <Rect x={5} y={5} width={1} height={1} fill={N.star} />
+                </Svg>
+                <Text style={styles.welcomeFeatureText}>
+                  배경음을 켜고 편안한 마음으로 이야기해봐!
+                </Text>
+              </View>
+              <Pressable
+                style={styles.welcomeBtn}
+                onPress={() => setShowWelcome(false)}
+              >
+                <Text style={styles.welcomeBtnText}>대화 시작하기</Text>
+              </Pressable>
+            </Pressable>
+          </Pressable>
+        </Modal>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -840,5 +890,69 @@ const styles = StyleSheet.create({
   },
   micBtnActive: {
     backgroundColor: N.bubbleUser,
+  },
+  // ── 환영 모달 ──
+  welcomeOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.lg,
+  },
+  welcomeCard: {
+    backgroundColor: N.cardBg,
+    borderRadius: 16,
+    borderWidth: 3,
+    borderColor: N.border,
+    padding: Spacing.xl,
+    width: '100%',
+    maxWidth: 320,
+    alignItems: 'center',
+  },
+  welcomeTitle: {
+    fontFamily: Fonts.bold,
+    fontSize: FontSizes.lg,
+    color: N.nameColor,
+    marginBottom: Spacing.md,
+  },
+  welcomeText: {
+    fontFamily: Fonts.regular,
+    fontSize: FontSizes.sm,
+    color: N.text,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: Spacing.lg,
+  },
+  welcomeNpcWrap: {
+    marginBottom: Spacing.md,
+  },
+  welcomeFeature: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginBottom: Spacing.lg,
+  },
+  welcomeFeatureText: {
+    fontFamily: Fonts.regular,
+    fontSize: FontSizes.xs,
+    color: N.text,
+    flex: 1,
+  },
+  welcomeBtn: {
+    backgroundColor: N.bubbleUser,
+    borderRadius: 12,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderWidth: 2,
+    borderColor: N.border,
+  },
+  welcomeBtnText: {
+    fontFamily: Fonts.bold,
+    fontSize: FontSizes.sm,
+    color: N.white,
   },
 });

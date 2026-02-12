@@ -229,6 +229,14 @@ export default function VillageView({
   );
   const [showNpcInfo, setShowNpcInfo] = useState(false);
 
+  // 마을 처음 진입 시 NPC 소개 모달 표시
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowNpcInfo(true);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Speech bubble
   const [selectedFriend, setSelectedFriend] = useState<{
     friend: FriendWithStatus;
@@ -729,6 +737,9 @@ export default function VillageView({
                 </Text>
               </View>
 
+              <Text style={styles.npcInfoHint}>
+                마을에서 주민을 탭해서 대화해봐!
+              </Text>
               {NPC_DEFS.map(def => (
                 <View key={def.type} style={styles.npcInfoItem}>
                   <View style={styles.npcInfoArt}>
@@ -760,9 +771,6 @@ export default function VillageView({
                 </View>
               ))}
             </View>
-            <Text style={styles.npcInfoHint}>
-              마을에서 주민을 탭해서 대화해봐!
-            </Text>
           </Pressable>
         </Pressable>
       </Modal>
@@ -990,8 +998,9 @@ function useStyles(colors: ColorScheme) {
         npcInfoHint: {
           fontFamily: Fonts.bold,
           fontSize: FontSizes.xs,
-          color: colors.cardBorder,
+          color: colors.nintendoBlue,
           textAlign: 'center',
+          marginTop: Spacing.md,
         },
         npcInfoNoticeBanner: {
           backgroundColor: colors.background,
