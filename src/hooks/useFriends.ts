@@ -110,6 +110,7 @@ export function useFriends(userId: string | undefined) {
     const unseenKnocksMap = new Map<string, number>();
     const totalKnocksMap = new Map<string, number>();
     const lastKnockEmojiMap = new Map<string, string>();
+    const lastKnockAtMap = new Map<string, string>();
     for (const k of knocksReceived) {
       totalKnocksMap.set(
         k.from_user_id,
@@ -122,6 +123,9 @@ export function useFriends(userId: string | undefined) {
         );
         if (!lastKnockEmojiMap.has(k.from_user_id) && k.emoji) {
           lastKnockEmojiMap.set(k.from_user_id, k.emoji);
+        }
+        if (!lastKnockAtMap.has(k.from_user_id)) {
+          lastKnockAtMap.set(k.from_user_id, k.created_at);
         }
       }
     }
@@ -154,6 +158,7 @@ export function useFriends(userId: string | undefined) {
         unseen_knocks: unseenKnocksMap.get(profile.id) ?? 0,
         total_knocks: totalKnocksMap.get(profile.id) ?? 0,
         last_knock_emoji: lastKnockEmojiMap.get(profile.id) ?? null,
+        last_knock_at: lastKnockAtMap.get(profile.id) ?? null,
         my_last_knock_emoji: myKnockEmojiMap.get(profile.id) ?? null,
         avatar_data: (profile.avatar_data as FriendWithStatus['avatar_data']) ?? null,
         allow_knocks: profile.allow_knocks !== false,

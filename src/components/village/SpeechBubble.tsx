@@ -4,6 +4,7 @@ import { useColors } from '../../contexts/ThemeContext';
 import type { ColorScheme } from '../../theme/colors';
 import { Fonts, FontSizes } from '../../theme';
 import type { FriendWithStatus } from '../../shared/types';
+import { getTimeAgo } from '../../shared/utils';
 import { CHARACTER_SIZE } from './villageConstants';
 
 interface SpeechBubbleProps {
@@ -12,15 +13,6 @@ interface SpeechBubbleProps {
   y: number;
   onKnock: () => void;
   onClose: () => void;
-}
-
-function getTimeAgo(dateStr: string | null): string {
-  if (!dateStr) return '기록 없음';
-  const hours = (Date.now() - new Date(dateStr).getTime()) / 3600000;
-  if (hours < 1) return '방금 전';
-  if (hours < 24) return `${Math.floor(hours)}시간 전`;
-  const days = Math.floor(hours / 24);
-  return `${days}일 전`;
 }
 
 const BUBBLE_WIDTH = 130;

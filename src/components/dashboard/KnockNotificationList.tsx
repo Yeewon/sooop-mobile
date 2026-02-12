@@ -1,12 +1,13 @@
 import React from 'react';
-import {View, Text, Image, StyleSheet} from 'react-native';
-import {Fonts, FontSizes, Spacing} from '../../theme';
-import {useColors} from '../../contexts/ThemeContext';
-import {KNOCK_ICONS} from '../../shared/constants';
+import { View, Text, Image, StyleSheet } from 'react-native';
+import { Colors, Fonts, FontSizes, Spacing } from '../../theme';
+import { useColors } from '../../contexts/ThemeContext';
+import { KNOCK_ICONS } from '../../shared/constants';
+import { getTimeAgo } from '../../shared/utils';
 import NintendoCard from '../NintendoCard';
 import NintendoButton from '../NintendoButton';
 import PixelAvatar from '../PixelAvatar';
-import type {AvatarData} from '../../shared/types';
+import type { AvatarData } from '../../shared/types';
 
 interface FriendKnock {
   friend_id: string;
@@ -14,6 +15,7 @@ interface FriendKnock {
   avatar_data: AvatarData | null;
   unseen_knocks: number;
   last_knock_emoji: string | null;
+  last_knock_at: string | null;
 }
 
 interface KnockNotificationListProps {
@@ -34,7 +36,7 @@ export default function KnockNotificationList({
   return (
     <View style={styles.section}>
       <View style={styles.header}>
-        <Text style={[styles.title, {color: colors.nintendoBlue}]}>
+        <Text style={[styles.title, { color: colors.nintendoBlue }]}>
           인사가 왔어!
         </Text>
       </View>
@@ -48,18 +50,22 @@ export default function KnockNotificationList({
               <PixelAvatar avatarData={f.avatar_data} size={28} />
               <View style={styles.info}>
                 <Text
-                  style={[styles.nickname, {color: colors.foreground}]}
-                  numberOfLines={1}>
+                  style={[styles.nickname, { color: colors.foreground }]}
+                  numberOfLines={1}
+                >
                   {f.nickname}
                 </Text>
                 <View style={styles.labelRow}>
                   {knockIcon && (
                     <Image source={knockIcon.icon} style={styles.labelIcon} />
                   )}
-                  <Text style={[styles.label, {color: colors.muted}]}>
+                  <Text style={[styles.label, { color: colors.muted }]}>
                     {knockIcon
                       ? knockIcon.label
                       : `인사를 ${f.unseen_knocks}번 보냈어`}
+                  </Text>
+                  <Text style={[styles.time, { color: colors.foreground }]}>
+                    · {getTimeAgo(f.last_knock_at)}
                   </Text>
                 </View>
               </View>
@@ -107,6 +113,7 @@ const styles = StyleSheet.create({
   nickname: {
     fontFamily: Fonts.bold,
     fontSize: FontSizes.sm,
+    color: Colors.white,
   },
   labelRow: {
     flexDirection: 'row',
@@ -121,5 +128,11 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: Fonts.bold,
     fontSize: FontSizes.xs,
+    color: Colors.white,
+  },
+  time: {
+    fontFamily: Fonts.regular,
+    fontSize: FontSizes.xs,
+    marginLeft: 4,
   },
 });

@@ -15,6 +15,7 @@ import {
   Modal,
   type GestureResponderEvent,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -229,12 +230,32 @@ export default function VillageView({
   );
   const [showNpcInfo, setShowNpcInfo] = useState(false);
 
-  // 마을 처음 진입 시 NPC 소개 모달 표시
+  // 마을 처음 진입 시 NPC 소개 모달 표시 (앱 설치 후 최초 1회)
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowNpcInfo(true);
-    }, 500);
-    return () => clearTimeout(timer);
+    const checkAndShowNpcIntro = async () => {
+      try {
+        const hasSeenIntro = await AsyncStorage.getItem('has_seen_npc_intro');
+        if (!hasSeenIntro) {
+          const timer = setTimeout(() => {
+            setShowNpcInfo(true);
+          }, 500);
+          return () => clearTimeout(timer);
+        }
+      } catch (error) {
+        // AsyncStorage 오류 시 무시
+      }
+    };
+    checkAndShowNpcIntro();
+  }, []);
+
+  // NPC 소개 모달 닫기 핸들러
+  const handleCloseNpcInfo = useCallback(async () => {
+    setShowNpcInfo(false);
+    try {
+      await AsyncStorage.setItem('has_seen_npc_intro', 'true');
+    } catch (error) {
+      // AsyncStorage 오류 시 무시
+    }
   }, []);
 
   // Speech bubble
@@ -718,11 +739,11 @@ export default function VillageView({
         visible={showNpcInfo}
         transparent
         animationType="fade"
-        onRequestClose={() => setShowNpcInfo(false)}
+        onRequestClose={handleCloseNpcInfo}
       >
         <Pressable
           style={styles.npcInfoOverlay}
-          onPress={() => setShowNpcInfo(false)}
+          onPress={handleCloseNpcInfo}
         >
           <Pressable
             style={styles.npcInfoCard}

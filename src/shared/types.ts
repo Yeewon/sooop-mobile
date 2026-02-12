@@ -48,6 +48,7 @@ export interface FriendWithStatus {
   unseen_knocks: number;
   total_knocks: number;
   last_knock_emoji: string | null;
+  last_knock_at: string | null;
   my_last_knock_emoji: string | null;
   avatar_data: AvatarData | null;
   allow_knocks: boolean;
