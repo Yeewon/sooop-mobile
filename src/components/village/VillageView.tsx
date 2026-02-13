@@ -229,6 +229,7 @@ export default function VillageView({
     [onNpcChat],
   );
   const [showNpcInfo, setShowNpcInfo] = useState(false);
+  const [showMessageInfo, setShowMessageInfo] = useState(false);
 
   // 마을 처음 진입 시 NPC 소개 모달 표시 (앱 설치 후 최초 1회)
   useEffect(() => {
@@ -376,12 +377,24 @@ export default function VillageView({
   return (
     <View>
       <View style={styles.bannerRow}>
-        <View style={{ ...styles.acBanner }}>
-          <Text style={styles.acBannerText}>메시지는 10초 후 사라져요</Text>
-        </View>
         <Pressable
           style={({ pressed }) => ({
             ...styles.acBanner,
+            ...(pressed
+              ? {
+                  transform: [{ translateY: 3 }],
+                  shadowOffset: { width: 0, height: 0 },
+                }
+              : {}),
+          })}
+          onPress={() => setShowMessageInfo(true)}
+        >
+          <Text style={styles.acBannerText}>메시지는 10초 후 사라져요</Text>
+        </Pressable>
+        <Pressable
+          style={({ pressed }) => ({
+            ...styles.acBanner,
+            backgroundColor: colors.villageGrass,
             ...(pressed
               ? {
                   transform: [{ translateY: 3 }],
@@ -437,6 +450,40 @@ export default function VillageView({
                 </Text>
               </View>
             ))}
+
+          {/* NPC 구분선 */}
+          <View style={styles.onlineDivider} />
+
+          {/* NPC 친구들 */}
+          {NPC_DEFS.map(def => (
+            <Pressable
+              key={def.type}
+              style={styles.onlineItem}
+              onPress={() => onNpcChat(def.type)}
+            >
+              <View style={styles.onlineAvatarWrap}>
+                <Svg width={24} height={24} viewBox={`0 0 ${def.renderWidth} ${def.renderHeight}`}>
+                  {def.art.grid.map((row, ry) =>
+                    row.map((cell, rx) =>
+                      cell === 0 ? null : (
+                        <Rect
+                          key={`${ry}-${rx}`}
+                          x={rx * def.art.pixelSize}
+                          y={ry * def.art.pixelSize}
+                          width={def.art.pixelSize}
+                          height={def.art.pixelSize}
+                          fill={def.art.palette[cell]}
+                        />
+                      ),
+                    ),
+                  )}
+                </Svg>
+              </View>
+              <Text style={styles.onlineNickname} numberOfLines={1}>
+                {NPC_NAMES[def.type]}
+              </Text>
+            </Pressable>
+          ))}
         </ScrollView>
       </View>
 
@@ -741,10 +788,7 @@ export default function VillageView({
         animationType="fade"
         onRequestClose={handleCloseNpcInfo}
       >
-        <Pressable
-          style={styles.npcInfoOverlay}
-          onPress={handleCloseNpcInfo}
-        >
+        <Pressable style={styles.npcInfoOverlay} onPress={handleCloseNpcInfo}>
           <Pressable
             style={styles.npcInfoCard}
             onPress={e => e.stopPropagation()}
@@ -791,6 +835,32 @@ export default function VillageView({
                   </View>
                 </View>
               ))}
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* 메시지 설명 모달 */}
+      <Modal
+        visible={showMessageInfo}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowMessageInfo(false)}
+      >
+        <Pressable
+          style={styles.npcInfoOverlay}
+          onPress={() => setShowMessageInfo(false)}
+        >
+          <Pressable
+            style={styles.npcInfoCard}
+            onPress={e => e.stopPropagation()}
+          >
+            <Text style={styles.npcInfoTitle}>귓속말 안내</Text>
+            <View style={styles.npcInfoList}>
+              <Text style={styles.npcInfoNoticeText}>
+                접속 중인 친구를 탭하면 귓속말을 보낼 수 있어.{'\n'}
+                메시지는 10초 후 사라지고 어디에도 저장되지 않아!
+              </Text>
             </View>
           </Pressable>
         </Pressable>
@@ -1130,6 +1200,12 @@ function useStyles(colors: ColorScheme) {
           color: colors.foreground,
           maxWidth: 44,
           textAlign: 'center',
+        },
+        onlineDivider: {
+          width: 1,
+          height: 28,
+          backgroundColor: colors.border,
+          marginHorizontal: 2,
         },
         // 테스트 패널
         debugPanel: {

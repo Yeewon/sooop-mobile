@@ -1,8 +1,15 @@
-import React, {useMemo} from 'react';
-import {View, Text, StyleSheet, Image, ScrollView, Pressable} from 'react-native';
-import {Fonts, FontSizes, Spacing} from '../theme';
-import {useColors} from '../contexts/ThemeContext';
-import type {ColorScheme} from '../theme/colors';
+import React, { useMemo } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  ScrollView,
+  Pressable,
+} from 'react-native';
+import { Fonts, FontSizes, Spacing } from '../theme';
+import { useColors } from '../contexts/ThemeContext';
+import type { ColorScheme } from '../theme/colors';
 import NintendoButton from '../components/NintendoButton';
 import NintendoCard from '../components/NintendoCard';
 
@@ -33,7 +40,10 @@ function InfoRow({
   );
 }
 
-export default function PrivacyInfoModal({onClose, onLogout}: PrivacyInfoModalProps) {
+export default function PrivacyInfoModal({
+  onClose,
+  onLogout,
+}: PrivacyInfoModalProps) {
   const colors = useColors();
   const styles = useStyles(colors);
 
@@ -93,26 +103,13 @@ export default function PrivacyInfoModal({onClose, onLogout}: PrivacyInfoModalPr
             </Text>
           </NintendoCard>
 
-
-                 <NintendoButton
-            title="로그아웃"
-            variant="muted"
-            onPress={onLogout}
-          />
+          <NintendoButton title="로그아웃" variant="muted" onPress={onLogout} />
 
           <View style={styles.divider} />
 
-          <NintendoButton
-            title="알겠어!"
-            variant="accent"
-            onPress={onClose}
-          />
+          <NintendoButton title="알겠어!" variant="accent" onPress={onClose} />
 
-          <View style={styles.voidContainer}/>
-
-
-
-
+          <View style={styles.voidContainer} />
         </ScrollView>
       </Pressable>
     </Pressable>
@@ -151,7 +148,7 @@ function useStyles(colors: ColorScheme) {
           gap: Spacing.sm,
           marginBottom: Spacing.xl,
         },
-        titleIcon: {width: 24, height: 24},
+        titleIcon: { width: 24, height: 24 },
         title: {
           fontFamily: Fonts.bold,
           fontSize: FontSizes.lg,
@@ -171,8 +168,8 @@ function useStyles(colors: ColorScheme) {
           gap: Spacing.md,
           marginBottom: Spacing.md,
         },
-        infoIcon: {width: 20, height: 20, marginTop: 2},
-        infoContent: {flex: 1},
+        infoIcon: { width: 20, height: 20, marginTop: 2 },
+        infoContent: { flex: 1 },
         infoTitle: {
           fontFamily: Fonts.regular,
           fontSize: FontSizes.lg,
@@ -194,14 +191,14 @@ function useStyles(colors: ColorScheme) {
         },
         noteCard: {
           padding: Spacing.md,
-          backgroundColor: colors.background,
+          backgroundColor: colors.villageGrass,
           alignItems: 'center',
           marginVertical: Spacing.xl,
         },
         noteText: {
           fontFamily: Fonts.bold,
           fontSize: FontSizes.sm,
-          color: colors.muted,
+          color: colors.foreground,
           textAlign: 'center',
           lineHeight: 18,
         },

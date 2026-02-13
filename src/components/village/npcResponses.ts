@@ -3,7 +3,7 @@ import type { NpcType } from './npcDefinitions';
 export const NPC_NAMES: Record<NpcType, string> = {
   cat: '달래',
   dog: '땡구',
-  bird: '훈이',
+  bird: '부엉',
   butterfly: '나울',
 };
 

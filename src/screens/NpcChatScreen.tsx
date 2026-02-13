@@ -580,7 +580,7 @@ export default function NpcChatScreen({ route, navigation }: Props) {
         <View style={styles.inputArea}>
           {limitReached ? (
             <Text style={styles.limitText}>
-              오늘은 여기까지! 내일 다시 이야기하자.
+              오늘 대화는 다 썼어. 내일 다시 만나자!
             </Text>
           ) : (
             <View style={styles.inputRow}>

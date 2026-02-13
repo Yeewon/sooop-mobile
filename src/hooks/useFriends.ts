@@ -111,6 +111,7 @@ export function useFriends(userId: string | undefined) {
     const totalKnocksMap = new Map<string, number>();
     const lastKnockEmojiMap = new Map<string, string>();
     const lastKnockAtMap = new Map<string, string>();
+    const unseenKnockListMap = new Map<string, {emoji: string | null; created_at: string}[]>();
     for (const k of knocksReceived) {
       totalKnocksMap.set(
         k.from_user_id,
@@ -127,14 +128,21 @@ export function useFriends(userId: string | undefined) {
         if (!lastKnockAtMap.has(k.from_user_id)) {
           lastKnockAtMap.set(k.from_user_id, k.created_at);
         }
+        const list = unseenKnockListMap.get(k.from_user_id) || [];
+        list.push({emoji: k.emoji ?? null, created_at: k.created_at});
+        unseenKnockListMap.set(k.from_user_id, list);
       }
     }
 
-    // 보낸 노크: 오늘 마지막 이모지
+    // 보낸 노크: 오늘 마지막 이모지 + 시간
     const myKnockEmojiMap = new Map<string, string>();
+    const myKnockAtMap = new Map<string, string>();
     for (const k of knocksSent) {
       if (!myKnockEmojiMap.has(k.to_user_id) && k.emoji) {
         myKnockEmojiMap.set(k.to_user_id, k.emoji);
+      }
+      if (!myKnockAtMap.has(k.to_user_id)) {
+        myKnockAtMap.set(k.to_user_id, k.created_at);
       }
     }
 
@@ -156,10 +164,12 @@ export function useFriends(userId: string | undefined) {
         nickname: profile.nickname,
         last_checkin: lastCheckinMap.get(profile.id) ?? null,
         unseen_knocks: unseenKnocksMap.get(profile.id) ?? 0,
+        unseen_knock_list: unseenKnockListMap.get(profile.id) ?? [],
         total_knocks: totalKnocksMap.get(profile.id) ?? 0,
         last_knock_emoji: lastKnockEmojiMap.get(profile.id) ?? null,
         last_knock_at: lastKnockAtMap.get(profile.id) ?? null,
         my_last_knock_emoji: myKnockEmojiMap.get(profile.id) ?? null,
+        my_last_knock_at: myKnockAtMap.get(profile.id) ?? null,
         avatar_data: (profile.avatar_data as FriendWithStatus['avatar_data']) ?? null,
         allow_knocks: profile.allow_knocks !== false,
         has_knock_request_sent: sentKnockReqSet.has(profile.id),
@@ -262,18 +272,17 @@ export function useFriends(userId: string | undefined) {
     }
 
     if (!isAdmin) {
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
+      const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000);
 
       const {count} = await supabase
         .from('knocks')
         .select('*', {count: 'exact', head: true})
         .eq('from_user_id', userId)
         .eq('to_user_id', toUserId)
-        .gte('created_at', todayStart.toISOString());
+        .gte('created_at', fourHoursAgo.toISOString());
 
       if (count && count > 0) {
-        return {error: '오늘은 이미 인사했어. 내일 다시 해봐!'};
+        return {error: '아직은 다시 인사할 수 없어. 4시간마다 한 번!'};
       }
     }
 

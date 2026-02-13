@@ -41,15 +41,22 @@ export interface Knock {
   emoji: string | null;
 }
 
+export interface UnseenKnock {
+  emoji: string | null;
+  created_at: string;
+}
+
 export interface FriendWithStatus {
   friend_id: string;
   nickname: string;
   last_checkin: string | null;
   unseen_knocks: number;
+  unseen_knock_list: UnseenKnock[];
   total_knocks: number;
   last_knock_emoji: string | null;
   last_knock_at: string | null;
   my_last_knock_emoji: string | null;
+  my_last_knock_at: string | null;
   avatar_data: AvatarData | null;
   allow_knocks: boolean;
   has_knock_request_sent: boolean;

@@ -1,9 +1,9 @@
 import React from 'react';
-import {View, Text, Image, Pressable, StyleSheet} from 'react-native';
-import {Fonts, FontSizes, Spacing} from '../../theme';
-import {useColors} from '../../contexts/ThemeContext';
-import type {ColorScheme} from '../../theme/colors';
-import {KNOCK_ICONS} from '../../shared/constants';
+import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
+import { Fonts, FontSizes, Spacing } from '../../theme';
+import { useColors } from '../../contexts/ThemeContext';
+import type { ColorScheme } from '../../theme/colors';
+import { KNOCK_ICONS } from '../../shared/constants';
 
 interface KnockPickerModalProps {
   visible: boolean;
@@ -29,18 +29,20 @@ export default function KnockPickerModal({
     <Pressable style={styles.overlay} onPress={onClose}>
       <Pressable style={styles.card} onPress={e => e.stopPropagation()}>
         <Text style={styles.title}>{friendName}에게 어떤 인사?</Text>
+        <Text style={styles.hint}>4시간마다 한 번 보낼 수 있어</Text>
         <View style={styles.grid}>
           {KNOCK_ICONS.map(item => (
             <Pressable
               key={item.id}
               onPress={() => onSelect(item.id)}
-              style={({pressed}) => [
+              style={({ pressed }) => [
                 styles.item,
                 pressed && {
-                  transform: [{translateY: 3}],
-                  shadowOffset: {width: 0, height: 0},
+                  transform: [{ translateY: 3 }],
+                  shadowOffset: { width: 0, height: 0 },
                 },
-              ]}>
+              ]}
+            >
               <Image source={item.icon} style={styles.icon} />
               <Text style={styles.label}>{item.label}</Text>
             </Pressable>
@@ -76,8 +78,15 @@ function useStyles(colors: ColorScheme) {
     },
     title: {
       fontFamily: Fonts.bold,
-      fontSize: FontSizes.xs,
-      color: colors.muted,
+      fontSize: FontSizes.base,
+      color: colors.foreground,
+      textAlign: 'center',
+      marginBottom: 4,
+    },
+    hint: {
+      fontFamily: Fonts.regular,
+      fontSize: FontSizes.sm,
+      color: colors.accent,
       textAlign: 'center',
       marginBottom: Spacing.md,
     },

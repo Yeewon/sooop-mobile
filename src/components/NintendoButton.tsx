@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, { useMemo } from 'react';
 import {
   Pressable,
   Text,
@@ -8,14 +8,14 @@ import {
   Image,
   ImageSourcePropType,
 } from 'react-native';
-import {useColors} from '../contexts/ThemeContext';
-import type {ColorScheme} from '../theme/colors';
-import {Fonts} from '../theme';
+import { useColors } from '../contexts/ThemeContext';
+import type { ColorScheme } from '../theme/colors';
+import { Fonts } from '../theme';
 
 interface NintendoButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'accent' | 'muted' | 'blue' | 'yellow' | 'green';
+  variant?: 'accent' | 'muted' | 'blue' | 'yellow' | 'green' | 'white';
   icon?: ImageSourcePropType;
   iconSize?: number;
   style?: ViewStyle;
@@ -42,39 +42,47 @@ export default function NintendoButton({
     variant === 'accent'
       ? colors.accent
       : variant === 'blue'
-        ? colors.nintendoBlue
-        : variant === 'yellow'
-          ? colors.nintendoYellow
-          : variant === 'green'
-            ? colors.nintendoGreen
-            : colors.cardBg;
+      ? colors.nintendoBlue
+      : variant === 'yellow'
+      ? colors.nintendoYellow
+      : variant === 'green'
+      ? colors.nintendoGreen
+      : variant === 'white'
+      ? colors.white
+      : colors.cardBg;
 
   const txtColor =
-    variant === 'muted' ? colors.muted : colors.white;
+    variant === 'muted'
+      ? colors.muted
+      : variant === 'white' || variant === 'yellow'
+      ? colors.shadowColor
+      : colors.white;
 
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
-      style={({pressed}) => [
+      style={({ pressed }) => [
         small ? styles.buttonSm : styles.button,
-        {backgroundColor: bgColor},
+        { backgroundColor: bgColor },
         pressed && styles.pressed,
         disabled && styles.disabled,
         style,
-      ]}>
+      ]}
+    >
       {icon && (
         <Image
           source={icon}
-          style={{width: iconSize, height: iconSize, marginRight: 6}}
+          style={{ width: iconSize, height: iconSize, marginRight: 6 }}
         />
       )}
       <Text
         style={[
           small ? styles.textSm : styles.text,
-          {color: txtColor},
+          { color: txtColor },
           textStyle,
-        ]}>
+        ]}
+      >
         {title}
       </Text>
     </Pressable>
@@ -95,7 +103,7 @@ function useStyles(colors: ColorScheme) {
           borderColor: colors.shadowColor,
           borderRadius: 12,
           shadowColor: colors.shadowColor,
-          shadowOffset: {width: 0, height: 4},
+          shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 1,
           shadowRadius: 0,
           elevation: 4,
@@ -110,14 +118,14 @@ function useStyles(colors: ColorScheme) {
           borderColor: colors.shadowColor,
           borderRadius: 10,
           shadowColor: colors.shadowColor,
-          shadowOffset: {width: 0, height: 3},
+          shadowOffset: { width: 0, height: 3 },
           shadowOpacity: 1,
           shadowRadius: 0,
           elevation: 3,
         },
         pressed: {
-          transform: [{translateY: 4}],
-          shadowOffset: {width: 0, height: 0},
+          transform: [{ translateY: 4 }],
+          shadowOffset: { width: 0, height: 0 },
         },
         disabled: {
           opacity: 0.5,

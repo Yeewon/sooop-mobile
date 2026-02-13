@@ -8,7 +8,7 @@ import {
   ImageSourcePropType,
 } from 'react-native';
 import {FriendWithStatus} from '../shared/types';
-import {KNOCK_ICONS} from '../shared/constants';
+
 import {useColors} from '../contexts/ThemeContext';
 import type {ColorScheme} from '../theme/colors';
 import {Fonts, FontSizes, Spacing} from '../theme';
@@ -99,9 +99,14 @@ export default function HeartbeatCard({
   const heartbeat = getHeartbeatInfo(friend.last_checkin, colors);
   const isInactive = !friend.last_checkin;
 
-  const myIcon = friend.my_last_knock_emoji
-    ? KNOCK_ICONS.find(k => k.id === friend.my_last_knock_emoji)
-    : null;
+  const knockCooldown = useMemo(() => {
+    if (!friend.my_last_knock_at) return null;
+    const elapsed = Date.now() - new Date(friend.my_last_knock_at).getTime();
+    const remaining = 4 * 60 * 60 * 1000 - elapsed;
+    if (remaining <= 0) return null;
+    const hours = Math.ceil(remaining / (1000 * 60 * 60));
+    return `${hours}시간 후`;
+  }, [friend.my_last_knock_at]);
 
   return (
     <Pressable onPress={onPress} onLongPress={onLongPress}>
@@ -150,8 +155,8 @@ export default function HeartbeatCard({
               />
             ) : (
               <NintendoButton
-                title={myIcon ? '인사함' : '인사하기'}
-                variant={myIcon ? 'muted' : isInactive ? 'accent' : 'yellow'}
+                title={knockCooldown ?? '인사하기'}
+                variant={knockCooldown ? 'muted' : isInactive ? 'accent' : 'yellow'}
                 small
                 onPress={() => onKnock('')}
               />

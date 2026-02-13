@@ -1,8 +1,8 @@
-import React, {useEffect, useMemo} from 'react';
-import {Text, StyleSheet, Pressable} from 'react-native';
-import {useColors} from '../contexts/ThemeContext';
-import type {ColorScheme} from '../theme/colors';
-import {Fonts, FontSizes, Spacing} from '../theme';
+import React, { useEffect, useMemo } from 'react';
+import { Text, StyleSheet, Pressable } from 'react-native';
+import { useColors } from '../contexts/ThemeContext';
+import type { ColorScheme } from '../theme/colors';
+import { Fonts, FontSizes, Spacing } from '../theme';
 
 interface ToastProps {
   message: string;
@@ -27,19 +27,17 @@ export default function Toast({
     return () => clearTimeout(timer);
   }, [onDismiss, duration]);
 
-  const bgColor =
-    type === 'success'
-      ? colors.nintendoGreen
-      : colors.foreground;
+  const bgColor = type === 'success' ? colors.nintendoGreen : colors.foreground;
 
   return (
     <Pressable
       onPress={onDismiss}
       style={[
         styles.container,
-        {backgroundColor: bgColor},
-        bottomOffset != null ? {bottom: bottomOffset} : {},
-      ]}>
+        { backgroundColor: bgColor },
+        bottomOffset != null ? { bottom: bottomOffset } : {},
+      ]}
+    >
       <Text style={styles.text}>{message}</Text>
     </Pressable>
   );
@@ -57,13 +55,13 @@ function useStyles(colors: ColorScheme) {
           paddingVertical: Spacing.sm + 2,
           borderRadius: 20,
           borderWidth: 2,
-          borderColor: colors.border,
+          borderColor: colors.shadowColor,
           zIndex: 999,
         },
         text: {
           fontFamily: Fonts.bold,
           fontSize: FontSizes.xs,
-          color: '#FFFFFF',
+          color: colors.shadowColor,
         },
       }),
     [colors],

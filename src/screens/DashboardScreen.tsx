@@ -49,7 +49,7 @@ import AvatarBuilderModal from '../modals/AvatarBuilderModal';
 import PhotoFrameModal from '../modals/PhotoFrameModal';
 import NicknameEditModal from '../modals/NicknameEditModal';
 import PrivacyInfoModal from '../modals/PrivacyInfoModal';
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import VillageView from '../components/village/VillageView';
 import WeatherWidget from '../components/WeatherWidget';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
@@ -262,9 +262,13 @@ export default function DashboardScreen() {
   const handleKnock = async (friendId: string, emoji?: string) => {
     if (!emoji) {
       const friend = friends.find(f => f.friend_id === friendId);
-      if (!isAdmin && friend?.my_last_knock_emoji) {
-        setKnockToast('하루에 한 번만 보낼 수 있어!');
-        return;
+      if (!isAdmin && friend?.my_last_knock_at) {
+        const elapsed =
+          Date.now() - new Date(friend.my_last_knock_at).getTime();
+        if (elapsed < 4 * 60 * 60 * 1000) {
+          setKnockToast('4시간마다 한 번 보낼 수 있어!');
+          return;
+        }
       }
       setShowKnockPicker(friendId);
       return;
@@ -508,7 +512,7 @@ export default function DashboardScreen() {
           myNickname={profile?.nickname || '나'}
           myUserId={user?.id}
           onFriendPress={friend => handleKnock(friend.friend_id)}
-          onNpcChat={npcType => navigation.navigate('NpcChat', {npcType})}
+          onNpcChat={npcType => navigation.navigate('NpcChat', { npcType })}
           weather={weather}
           isAdmin={isAdmin}
         />

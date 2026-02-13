@@ -228,7 +228,6 @@ export default function WeatherWidget({
   const bg = hasWeather ? WEATHER_BG[weather.icon] || DEFAULT_BG : null;
   const bgColor = hasWeather ? (isDark ? bg![1] : bg![0]) : colors.cardBg;
   const textColor = isDark ? '#F0EDE8' : '#1A1000';
-  const mutedColor = isDark ? '#A09888' : '#5A4A30';
   const weatherMsg = hasWeather
     ? getWeatherMessage(weather.icon, weather.temp)
     : '';
@@ -250,7 +249,7 @@ export default function WeatherWidget({
                   {weather.description}
                 </Text>
               </View>
-              <Text style={{ ...styles.city, color: mutedColor }}>
+              <Text style={{ ...styles.city, color: colors.foreground }}>
                 {weather.city}
               </Text>
             </View>
