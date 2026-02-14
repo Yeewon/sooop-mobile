@@ -95,6 +95,7 @@ export default function DashboardScreen() {
     friends,
     knockRequests,
     knockNotifications,
+    blockedIds,
     loading: friendsLoading,
     sendKnock,
     markKnocksSeen,
@@ -104,6 +105,8 @@ export default function DashboardScreen() {
     markNotificationSeen,
     addFriend,
     removeFriend,
+    blockUser,
+    reportUser,
     reload,
   } = useFriends(user?.id);
 
@@ -155,6 +158,8 @@ export default function DashboardScreen() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showKnockToggleConfirm, setShowKnockToggleConfirm] = useState(false);
   const [menuFriend, setMenuFriend] = useState<FriendWithStatus | null>(null);
+  const [blockConfirm, setBlockConfirm] = useState<FriendWithStatus | null>(null);
+  const [reportTarget, setReportTarget] = useState<FriendWithStatus | null>(null);
   const [knockHistoryFriend, setKnockHistoryFriend] =
     useState<FriendWithStatus | null>(null);
   const [knockHistory, setKnockHistory] = useState<
@@ -515,6 +520,7 @@ export default function DashboardScreen() {
           onNpcChat={npcType => navigation.navigate('NpcChat', { npcType })}
           weather={weather}
           isAdmin={isAdmin}
+          blockedIds={blockedIds}
         />
       )}
       <View style={styles.footer}>
@@ -907,6 +913,94 @@ export default function DashboardScreen() {
         </Pressable>
       )}
 
+      {/* 차단 확인 */}
+      {blockConfirm && (
+        <Pressable
+          style={styles.overlay}
+          onPress={() => setBlockConfirm(null)}
+        >
+          <Pressable
+            style={styles.modalCard}
+            onPress={e => e.stopPropagation()}
+          >
+            <Image
+              source={require('../assets/icons/flag.png')}
+              style={styles.modalIcon}
+            />
+            <Text style={styles.modalTitle}>
+              {blockConfirm.nickname}님을 차단할까?
+            </Text>
+            <Text style={styles.modalSub}>
+              이웃이 끊기고, 서로 인사와 귓속말을 보낼 수 없게 돼
+            </Text>
+            <View style={styles.modalBtns}>
+              <NintendoButton
+                title="취소"
+                variant="muted"
+                onPress={() => setBlockConfirm(null)}
+                style={styles.modalBtn}
+              />
+              <NintendoButton
+                title="차단"
+                variant="accent"
+                onPress={async () => {
+                  const friendId = blockConfirm.friend_id;
+                  setBlockConfirm(null);
+                  const { error } = await blockUser(friendId);
+                  if (error) {
+                    setKnockError(error);
+                  } else {
+                    setKnockToast('차단했어');
+                  }
+                }}
+                style={styles.modalBtn}
+              />
+            </View>
+          </Pressable>
+        </Pressable>
+      )}
+
+      {/* 신고 사유 선택 */}
+      {reportTarget && (
+        <Pressable
+          style={styles.overlay}
+          onPress={() => setReportTarget(null)}
+        >
+          <Pressable
+            style={styles.modalCard}
+            onPress={e => e.stopPropagation()}
+          >
+            <Text style={styles.modalTitle}>
+              {reportTarget.nickname}님을 신고
+            </Text>
+            <Text style={styles.modalSub}>신고 사유를 선택해줘</Text>
+            <View style={styles.menuBtns}>
+              {[
+                {label: '부적절한 닉네임', reason: 'inappropriate_nickname'},
+                {label: '불쾌한 메시지', reason: 'offensive_message'},
+                {label: '기타 부적절한 행위', reason: 'other'},
+              ].map(item => (
+                <NintendoButton
+                  key={item.reason}
+                  title={item.label}
+                  variant="muted"
+                  onPress={async () => {
+                    const userId = reportTarget.friend_id;
+                    setReportTarget(null);
+                    const { error } = await reportUser(userId, item.reason);
+                    if (error) {
+                      setKnockError(error);
+                    } else {
+                      setKnockToast('신고가 접수되었어');
+                    }
+                  }}
+                />
+              ))}
+            </View>
+          </Pressable>
+        </Pressable>
+      )}
+
       {/* 로그아웃 확인 */}
       {showLogoutConfirm && (
         <Pressable
@@ -970,6 +1064,24 @@ export default function DashboardScreen() {
                   setMenuFriend(null);
                   setKnockHistoryFriend(friend);
                   loadKnockHistory(friend.friend_id);
+                }}
+              />
+              <NintendoButton
+                title="신고하기"
+                variant="muted"
+                onPress={() => {
+                  const friend = menuFriend;
+                  setMenuFriend(null);
+                  setReportTarget(friend);
+                }}
+              />
+              <NintendoButton
+                title="차단하기"
+                variant="accent"
+                onPress={() => {
+                  const friend = menuFriend;
+                  setMenuFriend(null);
+                  setBlockConfirm(friend);
                 }}
               />
             </View>

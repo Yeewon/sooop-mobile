@@ -4,6 +4,7 @@ import {useAuthContext} from '../contexts/AuthContext';
 import LoginScreen from '../screens/LoginScreen';
 import SignUpScreen from '../screens/SignUpScreen';
 import EmailConfirmScreen from '../screens/EmailConfirmScreen';
+import EulaScreen from '../screens/EulaScreen';
 import DashboardScreen from '../screens/DashboardScreen';
 import NpcChatScreen from '../screens/NpcChatScreen';
 import BootSplash from 'react-native-bootsplash';
@@ -11,7 +12,7 @@ import BootSplash from 'react-native-bootsplash';
 const Stack = createNativeStackNavigator();
 
 export default function RootNavigator() {
-  const {user, loading} = useAuthContext();
+  const {user, profile, loading} = useAuthContext();
 
   useEffect(() => {
     if (!loading) {
@@ -25,8 +26,8 @@ export default function RootNavigator() {
 
   return (
     <Stack.Navigator screenOptions={{headerShown: false}}>
-      {user ? (
-        // 로그인 상태
+      {user && profile?.eula_accepted_at ? (
+        // 로그인 + EULA 동의 완료
         <Stack.Group>
           <Stack.Screen name="Dashboard" component={DashboardScreen} />
           <Stack.Screen
@@ -34,6 +35,11 @@ export default function RootNavigator() {
             component={NpcChatScreen}
             options={{animation: 'slide_from_bottom'}}
           />
+        </Stack.Group>
+      ) : user ? (
+        // 로그인했지만 EULA 미동의
+        <Stack.Group>
+          <Stack.Screen name="Eula" component={EulaScreen} />
         </Stack.Group>
       ) : (
         // 비로그인 상태

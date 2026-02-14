@@ -15,10 +15,21 @@ export function useFriends(userId: string | undefined) {
   const [knockNotifications, setKnockNotifications] = useState<
     KnockRequestNotification[]
   >([]);
+  const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
   const loadFriends = useCallback(async () => {
     if (!userId) return;
+
+    // 차단 목록 조회
+    const {data: blockRows} = await supabase
+      .from('blocks')
+      .select('blocked_user_id')
+      .eq('user_id', userId);
+    const blocked = new Set<string>(
+      (blockRows || []).map((b: {blocked_user_id: string}) => b.blocked_user_id),
+    );
+    setBlockedIds(blocked);
 
     const {data: friendRows} = await supabase
       .from('friends')
@@ -32,9 +43,9 @@ export function useFriends(userId: string | undefined) {
       return;
     }
 
-    const friendIds = friendRows.map(
-      (f: {friend_id: string}) => f.friend_id,
-    );
+    const friendIds = friendRows
+      .map((f: {friend_id: string}) => f.friend_id)
+      .filter((id: string) => !blocked.has(id));
 
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
@@ -406,6 +417,7 @@ export function useFriends(userId: string | undefined) {
 
     if (!friendProfile) return {error: '존재하지 않는 초대 코드입니다'};
     if (friendProfile.id === userId) return {error: '자신은 추가할 수 없습니다'};
+    if (blockedIds.has(friendProfile.id)) return {error: '추가할 수 없는 유저입니다'};
 
     const {data: existing} = await supabase
       .from('friends')
@@ -426,10 +438,37 @@ export function useFriends(userId: string | undefined) {
     return {error: null};
   };
 
+  const blockUser = async (
+    blockedUserId: string,
+  ): Promise<{error: string | null}> => {
+    if (!userId) return {error: null};
+    await supabase.from('blocks').insert({
+      user_id: userId,
+      blocked_user_id: blockedUserId,
+    });
+    await removeFriend(blockedUserId);
+    return {error: null};
+  };
+
+  const reportUser = async (
+    reportedUserId: string,
+    reason: string,
+  ): Promise<{error: string | null}> => {
+    if (!userId) return {error: null};
+    const {error} = await supabase.from('reports').insert({
+      reporter_id: userId,
+      reported_user_id: reportedUserId,
+      reason,
+    });
+    if (error) return {error: '신고 접수에 실패했어'};
+    return {error: null};
+  };
+
   return {
     friends,
     knockRequests,
     knockNotifications,
+    blockedIds,
     loading,
     sendKnock,
     markKnocksSeen,
@@ -439,6 +478,8 @@ export function useFriends(userId: string | undefined) {
     markNotificationSeen,
     addFriend,
     removeFriend,
+    blockUser,
+    reportUser,
     reload: loadFriends,
   };
 }

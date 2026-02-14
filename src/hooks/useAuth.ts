@@ -144,6 +144,17 @@ export function useAuth() {
     setProfile(prev => (prev ? {...prev, allow_knocks: allowKnocks} : prev));
   };
 
+  const acceptEula = async () => {
+    if (!user) throw new Error('로그인이 필요합니다');
+    const now = new Date().toISOString();
+    const {error} = await supabase
+      .from('profiles')
+      .update({eula_accepted_at: now})
+      .eq('id', user.id);
+    if (error) throw error;
+    setProfile(prev => (prev ? {...prev, eula_accepted_at: now} : prev));
+  };
+
   const updateReminderHour = async (hour: number) => {
     if (!user) throw new Error('로그인이 필요합니다');
     const {error} = await supabase
@@ -169,6 +180,7 @@ export function useAuth() {
     signOut,
     updateNickname,
     updateAvatar,
+    acceptEula,
     updateAllowKnocks,
     updateReminderHour,
   };

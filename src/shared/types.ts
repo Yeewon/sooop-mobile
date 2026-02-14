@@ -17,6 +17,7 @@ export interface Profile {
   allow_knocks: boolean;
   reminder_hour: number;
   role: 'user' | 'admin';
+  eula_accepted_at: string | null;
 }
 
 export interface Checkin {

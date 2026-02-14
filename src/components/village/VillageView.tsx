@@ -95,6 +95,7 @@ interface VillageViewProps {
   onNpcChat: (npcType: NpcType) => void;
   weather?: WeatherData | null;
   isAdmin?: boolean;
+  blockedIds?: Set<string>;
 }
 
 export default function VillageView({
@@ -106,6 +107,7 @@ export default function VillageView({
   onNpcChat,
   weather,
   isAdmin,
+  blockedIds,
 }: VillageViewProps) {
   const colors = useColors();
   const styles = useStyles(colors);
@@ -139,6 +141,7 @@ export default function VillageView({
   } = useVillageRealtime({
     userId: myUserId,
     enabled: true,
+    blockedIds,
   });
 
   // 입장/퇴장 토스트

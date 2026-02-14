@@ -18,6 +18,7 @@ export interface ChatMessage {
 interface UseVillageRealtimeOptions {
   userId: string | undefined;
   enabled: boolean;
+  blockedIds?: Set<string>;
 }
 
 let chatIdCounter = 0;
@@ -30,6 +31,7 @@ let chatIdCounter = 0;
 export function useVillageRealtime({
   userId,
   enabled,
+  blockedIds,
 }: UseVillageRealtimeOptions) {
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const [livePositions, setLivePositions] = useState<Map<string, LivePosition>>(
@@ -90,6 +92,8 @@ export function useVillageRealtime({
       })
       .on('broadcast', { event: 'chat' }, ({ payload }) => {
         if (!payload || payload.uid === userId) return;
+        // 차단된 유저 메시지 필터링
+        if (blockedIds?.has(payload.uid)) return;
         // 귓속말: to가 있으면 내게 온 것만 수신
         if (payload.to && payload.to !== userId) return;
         const msg: ChatMessage = {
