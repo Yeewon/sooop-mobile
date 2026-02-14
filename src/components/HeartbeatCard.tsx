@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,11 +7,11 @@ import {
   Pressable,
   ImageSourcePropType,
 } from 'react-native';
-import {FriendWithStatus} from '../shared/types';
+import { FriendWithStatus } from '../shared/types';
 
-import {useColors} from '../contexts/ThemeContext';
-import type {ColorScheme} from '../theme/colors';
-import {Fonts, FontSizes, Spacing} from '../theme';
+import { useColors } from '../contexts/ThemeContext';
+import type { ColorScheme } from '../theme/colors';
+import { Fonts, FontSizes, Spacing } from '../theme';
 import PixelAvatar from './PixelAvatar';
 import NintendoCard from './NintendoCard';
 import NintendoButton from './NintendoButton';
@@ -21,7 +21,6 @@ interface HeartbeatCardProps {
   onKnock: (knockId: string) => void;
   onPress: () => void;
   onKnockRequest: () => void;
-  onLongPress?: () => void;
 }
 
 function getHeartbeatInfo(
@@ -42,8 +41,7 @@ function getHeartbeatInfo(
 
   const now = new Date();
   const checkinDate = new Date(lastCheckin);
-  const hoursAgo =
-    (now.getTime() - checkinDate.getTime()) / (1000 * 60 * 60);
+  const hoursAgo = (now.getTime() - checkinDate.getTime()) / (1000 * 60 * 60);
 
   if (hoursAgo < 12) {
     return {
@@ -84,7 +82,7 @@ function formatTime(lastCheckin: string | null): string {
   if (diffHours < 24) return `${diffHours}시간 전`;
   const diffDays = Math.floor(diffHours / 24);
   if (diffDays < 7) return `${diffDays}일 전`;
-  return date.toLocaleDateString('ko-KR', {month: 'short', day: 'numeric'});
+  return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
 }
 
 export default function HeartbeatCard({
@@ -92,7 +90,6 @@ export default function HeartbeatCard({
   onKnock,
   onPress,
   onKnockRequest,
-  onLongPress,
 }: HeartbeatCardProps) {
   const colors = useColors();
   const styles = useStyles(colors);
@@ -109,18 +106,19 @@ export default function HeartbeatCard({
   }, [friend.my_last_knock_at]);
 
   return (
-    <Pressable onPress={onPress} onLongPress={onLongPress}>
-      {({pressed}) => (
+    <Pressable onPress={onPress}>
+      {({ pressed }) => (
         <NintendoCard
           style={{
             ...styles.card,
             ...(pressed
               ? {
-                  transform: [{translateY: 4}],
-                  shadowOffset: {width: 0, height: 0},
+                  transform: [{ translateY: 4 }],
+                  shadowOffset: { width: 0, height: 0 },
                 }
               : {}),
-          }}>
+          }}
+        >
           {/* 아바타 + 상태 */}
           <View style={styles.avatarWrap}>
             <PixelAvatar avatarData={friend.avatar_data} size={44} />
@@ -133,7 +131,7 @@ export default function HeartbeatCard({
               {friend.nickname}
             </Text>
             <View style={styles.statusRow}>
-              <Text style={[styles.statusLabel, {color: heartbeat.color}]}>
+              <Text style={[styles.statusLabel, { color: heartbeat.color }]}>
                 {heartbeat.label}
               </Text>
               {friend.last_checkin && (
@@ -156,7 +154,9 @@ export default function HeartbeatCard({
             ) : (
               <NintendoButton
                 title={knockCooldown ?? '인사하기'}
-                variant={knockCooldown ? 'muted' : isInactive ? 'accent' : 'yellow'}
+                variant={
+                  knockCooldown ? 'muted' : isInactive ? 'accent' : 'yellow'
+                }
                 small
                 onPress={() => onKnock('')}
               />

@@ -5,6 +5,8 @@ import {
   FriendWithStatus,
   IncomingKnockRequest,
   KnockRequestNotification,
+  BlockedUser,
+  AvatarData,
 } from '../shared/types';
 
 export function useFriends(userId: string | undefined) {
@@ -16,20 +18,38 @@ export function useFriends(userId: string | undefined) {
     KnockRequestNotification[]
   >([]);
   const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
+  const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadFriends = useCallback(async () => {
     if (!userId) return;
 
-    // 차단 목록 조회
+    // 차단 목록 조회 (프로필 정보 포함)
     const {data: blockRows} = await supabase
       .from('blocks')
       .select('blocked_user_id')
       .eq('user_id', userId);
-    const blocked = new Set<string>(
-      (blockRows || []).map((b: {blocked_user_id: string}) => b.blocked_user_id),
+    const blockedUserIds = (blockRows || []).map(
+      (b: {blocked_user_id: string}) => b.blocked_user_id,
     );
+    const blocked = new Set<string>(blockedUserIds);
     setBlockedIds(blocked);
+
+    if (blockedUserIds.length > 0) {
+      const {data: blockedProfiles} = await supabase
+        .from('profiles')
+        .select('id, nickname, avatar_data')
+        .in('id', blockedUserIds);
+      setBlockedUsers(
+        (blockedProfiles || []).map((p: {id: string; nickname: string; avatar_data: AvatarData | null}) => ({
+          id: p.id,
+          nickname: p.nickname,
+          avatar_data: p.avatar_data as AvatarData | null,
+        })),
+      );
+    } else {
+      setBlockedUsers([]);
+    }
 
     const {data: friendRows} = await supabase
       .from('friends')
@@ -387,6 +407,7 @@ export function useFriends(userId: string | undefined) {
   ): Promise<{error: string | null}> => {
     if (!userId) return {error: null};
 
+    // 내 쪽만 삭제 (카톡/인스타 방식 — 상대 목록에는 남아있음)
     const {error: err1} = await supabase
       .from('friends')
       .delete()
@@ -394,13 +415,6 @@ export function useFriends(userId: string | undefined) {
       .eq('friend_id', friendId);
 
     if (err1) return {error: '연동 끊기에 실패했어'};
-
-    // 상대방 방향도 삭제
-    await supabase
-      .from('friends')
-      .delete()
-      .eq('user_id', friendId)
-      .eq('friend_id', userId);
 
     await loadFriends();
     return {error: null};
@@ -429,10 +443,17 @@ export function useFriends(userId: string | undefined) {
     if (existing && existing.length > 0)
       return {error: '이미 연결된 친구입니다'};
 
-    await supabase.from('friends').insert([
-      {user_id: userId, friend_id: friendProfile.id},
-      {user_id: friendProfile.id, friend_id: userId},
-    ]);
+    // 개별 insert — 역방향이 이미 존재할 수 있으므로 batch 실패 방지
+    const {error: insertErr} = await supabase
+      .from('friends')
+      .insert({user_id: userId, friend_id: friendProfile.id});
+
+    if (insertErr) return {error: '친구 추가에 실패했어'};
+
+    // 역방향 (이미 존재하면 무시)
+    await supabase
+      .from('friends')
+      .insert({user_id: friendProfile.id, friend_id: userId});
 
     await loadFriends();
     return {error: null};
@@ -442,12 +463,23 @@ export function useFriends(userId: string | undefined) {
     blockedUserId: string,
   ): Promise<{error: string | null}> => {
     if (!userId) return {error: null};
-    await supabase.from('blocks').insert({
-      user_id: userId,
-      blocked_user_id: blockedUserId,
+    // RPC로 차단 + 양방향 친구 삭제 (SECURITY DEFINER로 RLS 우회)
+    const {error} = await supabase.rpc('block_user', {
+      blocked_id: blockedUserId,
     });
-    await removeFriend(blockedUserId);
+    if (error) return {error: '차단에 실패했어'};
+    await loadFriends();
     return {error: null};
+  };
+
+  const unblockUser = async (blockedUserId: string) => {
+    if (!userId) return;
+    await supabase
+      .from('blocks')
+      .delete()
+      .eq('user_id', userId)
+      .eq('blocked_user_id', blockedUserId);
+    await loadFriends();
   };
 
   const reportUser = async (
@@ -469,6 +501,7 @@ export function useFriends(userId: string | undefined) {
     knockRequests,
     knockNotifications,
     blockedIds,
+    blockedUsers,
     loading,
     sendKnock,
     markKnocksSeen,
@@ -479,6 +512,7 @@ export function useFriends(userId: string | undefined) {
     addFriend,
     removeFriend,
     blockUser,
+    unblockUser,
     reportUser,
     reload: loadFriends,
   };

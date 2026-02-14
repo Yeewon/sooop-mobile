@@ -6,17 +6,6 @@ import {ThemeProvider, useTheme} from './contexts/ThemeContext';
 import {LightColors, DarkColors} from './theme/colors';
 import RootNavigator from './navigation/RootNavigator';
 
-const linking = {
-  prefixes: ['sooop://'],
-  config: {
-    screens: {
-      Dashboard: {
-        path: 'invite/:code',
-      },
-    },
-  },
-};
-
 const navLightTheme = {
   ...DefaultTheme,
   colors: {
@@ -46,7 +35,6 @@ function AppContent() {
     <>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <NavigationContainer
-        linking={linking}
         theme={isDark ? navDarkTheme : navLightTheme}>
         <RootNavigator />
       </NavigationContainer>

@@ -1,4 +1,4 @@
-import React, {useState, useMemo} from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,15 +9,15 @@ import {
   Share,
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import {Fonts, FontSizes, Spacing} from '../theme';
-import {useColors} from '../contexts/ThemeContext';
-import type {ColorScheme} from '../theme/colors';
+import { Fonts, FontSizes, Spacing } from '../theme';
+import { useColors } from '../contexts/ThemeContext';
+import type { ColorScheme } from '../theme/colors';
 import NintendoButton from '../components/NintendoButton';
 import NintendoCard from '../components/NintendoCard';
 
 interface InviteModalProps {
   myInviteCode: string;
-  onAddFriend: (code: string) => Promise<{error: string | null}>;
+  onAddFriend: (code: string) => Promise<{ error: string | null }>;
   onClose: () => void;
 }
 
@@ -66,10 +66,6 @@ export default function InviteModal({
     <Pressable style={styles.overlay} onPress={onClose}>
       <Pressable style={styles.card} onPress={e => e.stopPropagation()}>
         <View style={styles.titleRow}>
-          <Image
-            source={require('../assets/icons/flag.png')}
-            style={styles.titleIcon}
-          />
           <Text style={styles.title}>이웃 초대</Text>
         </View>
 
@@ -158,7 +154,7 @@ function useStyles(colors: ColorScheme) {
           gap: Spacing.sm,
           marginBottom: Spacing.xl,
         },
-        titleIcon: {width: 24, height: 24},
+        titleIcon: { width: 24, height: 24 },
         title: {
           fontFamily: Fonts.bold,
           fontSize: FontSizes.lg,
@@ -185,7 +181,7 @@ function useStyles(colors: ColorScheme) {
           gap: Spacing.sm,
           marginBottom: Spacing.xs,
         },
-        flex1: {flex: 1},
+        flex1: { flex: 1 },
         hint: {
           fontFamily: Fonts.regular,
           fontSize: FontSizes.sm,

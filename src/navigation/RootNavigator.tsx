@@ -15,12 +15,13 @@ export default function RootNavigator() {
   const {user, profile, loading} = useAuthContext();
 
   useEffect(() => {
-    if (!loading) {
+    // user가 있으면 profile 로딩까지 대기 후 스플래시 숨김
+    if (!loading && (!user || profile)) {
       BootSplash.hide({fade: true});
     }
-  }, [loading]);
+  }, [loading, user, profile]);
 
-  if (loading) {
+  if (loading || (user && !profile)) {
     return null;
   }
 

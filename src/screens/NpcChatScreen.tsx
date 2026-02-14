@@ -14,11 +14,11 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   Dimensions,
   Alert,
   Modal,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Rect, Circle, RectProps } from 'react-native-svg';
 import Animated, {
   useAnimatedProps,

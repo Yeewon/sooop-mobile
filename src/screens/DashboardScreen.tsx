@@ -20,7 +20,12 @@ import {
   Keyboard,
   Platform,
 } from 'react-native';
-import messaging from '@react-native-firebase/messaging';
+import {
+  getMessaging,
+  hasPermission,
+  requestPermission,
+  AuthorizationStatus,
+} from '@react-native-firebase/messaging';
 import { useColors } from '../contexts/ThemeContext';
 import type { ColorScheme } from '../theme/colors';
 import { Fonts, FontSizes, Spacing } from '../theme';
@@ -96,6 +101,7 @@ export default function DashboardScreen() {
     knockRequests,
     knockNotifications,
     blockedIds,
+    blockedUsers,
     loading: friendsLoading,
     sendKnock,
     markKnocksSeen,
@@ -106,6 +112,7 @@ export default function DashboardScreen() {
     addFriend,
     removeFriend,
     blockUser,
+    unblockUser,
     reportUser,
     reload,
   } = useFriends(user?.id);
@@ -158,8 +165,12 @@ export default function DashboardScreen() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showKnockToggleConfirm, setShowKnockToggleConfirm] = useState(false);
   const [menuFriend, setMenuFriend] = useState<FriendWithStatus | null>(null);
-  const [blockConfirm, setBlockConfirm] = useState<FriendWithStatus | null>(null);
-  const [reportTarget, setReportTarget] = useState<FriendWithStatus | null>(null);
+  const [blockConfirm, setBlockConfirm] = useState<FriendWithStatus | null>(
+    null,
+  );
+  const [reportTarget, setReportTarget] = useState<FriendWithStatus | null>(
+    null,
+  );
   const [knockHistoryFriend, setKnockHistoryFriend] =
     useState<FriendWithStatus | null>(null);
   const [knockHistory, setKnockHistory] = useState<
@@ -172,13 +183,14 @@ export default function DashboardScreen() {
 
   // 푸시 알림 권한 상태
   const [pushEnabled, setPushEnabled] = useState(false);
+  const msg = getMessaging();
   const checkPushPermission = useCallback(async () => {
-    const status = await messaging().hasPermission();
+    const status = await hasPermission(msg);
     setPushEnabled(
-      status === messaging.AuthorizationStatus.AUTHORIZED ||
-        status === messaging.AuthorizationStatus.PROVISIONAL,
+      status === AuthorizationStatus.AUTHORIZED ||
+        status === AuthorizationStatus.PROVISIONAL,
     );
-  }, []);
+  }, [msg]);
 
   useEffect(() => {
     checkPushPermission();
@@ -210,12 +222,12 @@ export default function DashboardScreen() {
       // 이미 켜져 있으면 → 시스템 설정으로 안내 (iOS에서 앱 내 비활성화 불가)
       Linking.openSettings();
     } else {
-      const status = await messaging().hasPermission();
-      if (status === messaging.AuthorizationStatus.NOT_DETERMINED) {
-        const result = await messaging().requestPermission();
+      const status = await hasPermission(msg);
+      if (status === AuthorizationStatus.NOT_DETERMINED) {
+        const result = await requestPermission(msg);
         const granted =
-          result === messaging.AuthorizationStatus.AUTHORIZED ||
-          result === messaging.AuthorizationStatus.PROVISIONAL;
+          result === AuthorizationStatus.AUTHORIZED ||
+          result === AuthorizationStatus.PROVISIONAL;
         setPushEnabled(granted);
       } else {
         // DENIED → 시스템 설정으로 안내
@@ -324,7 +336,6 @@ export default function DashboardScreen() {
         onKnock={(emoji: string) => handleKnock(item.friend_id, emoji)}
         onPress={() => setMenuFriend(item)}
         onKnockRequest={() => handleKnockRequest(item.friend_id)}
-        onLongPress={() => setUnfriendConfirm(item.friend_id)}
       />
     </AnimatedEntrance>
   );
@@ -579,165 +590,192 @@ export default function DashboardScreen() {
             style={styles.modalCard}
             onPress={e => e.stopPropagation()}
           >
-            <Text style={styles.modalTitle}>설정</Text>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text style={styles.modalTitle}>설정</Text>
 
-            {/* 알림 시간 설정 */}
-            <Text style={styles.settingsLabel}>알림 시간</Text>
-            <View style={styles.hourPicker}>
-              <Pressable
-                onPress={() => {
-                  const prev = tempReminderHour ?? profile?.reminder_hour ?? 10;
-                  setTempReminderHour(prev <= 0 ? 23 : prev - 1);
-                }}
-                style={styles.hourBtn}
-              >
-                <Text style={styles.hourBtnText}>-</Text>
-              </Pressable>
-              <Text style={styles.hourText}>
-                {(tempReminderHour ?? profile?.reminder_hour ?? 10)
-                  .toString()
-                  .padStart(2, '0')}
-                :00
-              </Text>
-              <Pressable
-                onPress={() => {
-                  const prev = tempReminderHour ?? profile?.reminder_hour ?? 10;
-                  setTempReminderHour(prev >= 23 ? 0 : prev + 1);
-                }}
-                style={styles.hourBtn}
-              >
-                <Text style={styles.hourBtnText}>+</Text>
-              </Pressable>
-            </View>
-            <Text style={styles.settingsHint}>
-              매일 이 시간에 응원 알림을 보내줘
-            </Text>
-            <NintendoButton
-              title="확인"
-              variant="muted"
-              disabled={
-                tempReminderHour === null ||
-                tempReminderHour === (profile?.reminder_hour ?? 10)
-              }
-              onPress={async () => {
-                if (tempReminderHour !== null) {
-                  await updateReminderHour(tempReminderHour);
-                  setTempReminderHour(null);
-                }
-              }}
-              style={{ width: '100%', marginBottom: Spacing.xs }}
-            />
-
-            <View style={styles.settingsDivider} />
-
-            {/* 푸시 알림 토글 */}
-            <View style={styles.pushContainer}>
-              <View style={styles.settingsLabelRow}>
-                <Text style={{ ...styles.settingsLabel, marginBottom: 0 }}>
-                  푸시 알림
+              {/* 알림 시간 설정 */}
+              <Text style={styles.settingsLabel}>알림 시간</Text>
+              <View style={styles.hourPicker}>
+                <Pressable
+                  onPress={() => {
+                    const prev =
+                      tempReminderHour ?? profile?.reminder_hour ?? 10;
+                    setTempReminderHour(prev <= 0 ? 23 : prev - 1);
+                  }}
+                  style={styles.hourBtn}
+                >
+                  <Text style={styles.hourBtnText}>-</Text>
+                </Pressable>
+                <Text style={styles.hourText}>
+                  {(tempReminderHour ?? profile?.reminder_hour ?? 10)
+                    .toString()
+                    .padStart(2, '0')}
+                  :00
                 </Text>
-                <Text style={styles.settingsLabelHint}>
-                  {pushEnabled
-                    ? '인사 알림과 응원 메시지를 받아'
-                    : '설정에서 알림을 켜줘'}
-                </Text>
+                <Pressable
+                  onPress={() => {
+                    const prev =
+                      tempReminderHour ?? profile?.reminder_hour ?? 10;
+                    setTempReminderHour(prev >= 23 ? 0 : prev + 1);
+                  }}
+                  style={styles.hourBtn}
+                >
+                  <Text style={styles.hourBtnText}>+</Text>
+                </Pressable>
               </View>
-              <Pressable onPress={handleTogglePush} style={styles.toggleRow}>
-                {({ pressed }) => (
-                  <>
-                    <View
-                      style={[
-                        styles.toggleTrack,
-                        {
-                          backgroundColor: pushEnabled
-                            ? colors.nintendoGreen
-                            : colors.muted,
-                          opacity: pushEnabled ? 1 : 0.4,
-                        },
-                        pressed && {
-                          transform: [{ translateY: 2 }],
-                          shadowOffset: { width: 0, height: 0 },
-                        },
-                      ]}
-                    >
+              <Text style={styles.settingsHint}>
+                매일 이 시간에 응원 알림을 보내줘
+              </Text>
+              <NintendoButton
+                title="확인"
+                variant="muted"
+                disabled={
+                  tempReminderHour === null ||
+                  tempReminderHour === (profile?.reminder_hour ?? 10)
+                }
+                onPress={async () => {
+                  if (tempReminderHour !== null) {
+                    await updateReminderHour(tempReminderHour);
+                    setTempReminderHour(null);
+                  }
+                }}
+                style={{ width: '100%', marginBottom: Spacing.xs }}
+              />
+
+              <View style={styles.settingsDivider} />
+
+              {/* 푸시 알림 토글 */}
+              <View style={styles.pushContainer}>
+                <View style={styles.settingsLabelRow}>
+                  <Text style={{ ...styles.settingsLabel, marginBottom: 0 }}>
+                    푸시 알림
+                  </Text>
+                  <Text style={styles.settingsLabelHint}>
+                    {pushEnabled
+                      ? '인사 알림과 응원 메시지를 받아'
+                      : '설정에서 알림을 켜줘'}
+                  </Text>
+                </View>
+                <Pressable onPress={handleTogglePush} style={styles.toggleRow}>
+                  {({ pressed }) => (
+                    <>
                       <View
                         style={[
-                          styles.toggleKnob,
-                          pushEnabled
-                            ? styles.toggleKnobOn
-                            : styles.toggleKnobOff,
+                          styles.toggleTrack,
+                          {
+                            backgroundColor: pushEnabled
+                              ? colors.nintendoGreen
+                              : colors.muted,
+                            opacity: pushEnabled ? 1 : 0.4,
+                          },
+                          pressed && {
+                            transform: [{ translateY: 2 }],
+                            shadowOffset: { width: 0, height: 0 },
+                          },
                         ]}
-                      />
-                    </View>
-                    {/* <Text style={styles.toggleText}>
+                      >
+                        <View
+                          style={[
+                            styles.toggleKnob,
+                            pushEnabled
+                              ? styles.toggleKnobOn
+                              : styles.toggleKnobOff,
+                          ]}
+                        />
+                      </View>
+                      {/* <Text style={styles.toggleText}>
                       {pushEnabled ? '알림 켜짐' : '알림 꺼짐'}
                     </Text> */}
-                  </>
-                )}
-              </Pressable>
-            </View>
-
-            <View style={styles.settingsDivider} />
-
-            {/* 위치 정보 토글 */}
-            <View style={styles.pushContainer}>
-              <View style={styles.settingsLabelRow}>
-                <Text style={{ ...styles.settingsLabel, marginBottom: 0 }}>
-                  위치 정보
-                </Text>
-                <Text style={styles.settingsLabelHint}>
-                  {locationGranted
-                    ? '현재 위치의 날씨를 보여줘'
-                    : '허용하면 내 위치 날씨를 볼 수 있어'}
-                </Text>
+                    </>
+                  )}
+                </Pressable>
               </View>
-              <Pressable
-                onPress={() => Linking.openSettings()}
-                style={styles.toggleRow}
-              >
-                {({ pressed }) => (
-                  <>
-                    <View
-                      style={[
-                        styles.toggleTrack,
-                        {
-                          backgroundColor: locationGranted
-                            ? colors.nintendoGreen
-                            : colors.muted,
-                          opacity: locationGranted ? 1 : 0.4,
-                        },
-                        pressed && {
-                          transform: [{ translateY: 2 }],
-                          shadowOffset: { width: 0, height: 0 },
-                        },
-                      ]}
-                    >
+
+              <View style={styles.settingsDivider} />
+
+              {/* 위치 정보 토글 */}
+              <View style={styles.pushContainer}>
+                <View style={styles.settingsLabelRow}>
+                  <Text style={{ ...styles.settingsLabel, marginBottom: 0 }}>
+                    위치 정보
+                  </Text>
+                  <Text style={styles.settingsLabelHint}>
+                    {locationGranted
+                      ? '현재 위치의 날씨를 보여줘'
+                      : '허용하면 내 위치 날씨를 볼 수 있어'}
+                  </Text>
+                </View>
+                <Pressable
+                  onPress={() => Linking.openSettings()}
+                  style={styles.toggleRow}
+                >
+                  {({ pressed }) => (
+                    <>
                       <View
                         style={[
-                          styles.toggleKnob,
-                          locationGranted
-                            ? styles.toggleKnobOn
-                            : styles.toggleKnobOff,
+                          styles.toggleTrack,
+                          {
+                            backgroundColor: locationGranted
+                              ? colors.nintendoGreen
+                              : colors.muted,
+                            opacity: locationGranted ? 1 : 0.4,
+                          },
+                          pressed && {
+                            transform: [{ translateY: 2 }],
+                            shadowOffset: { width: 0, height: 0 },
+                          },
                         ]}
-                      />
-                    </View>
-                    {/* <Text style={styles.toggleText}>
+                      >
+                        <View
+                          style={[
+                            styles.toggleKnob,
+                            locationGranted
+                              ? styles.toggleKnobOn
+                              : styles.toggleKnobOff,
+                          ]}
+                        />
+                      </View>
+                      {/* <Text style={styles.toggleText}>
                       {locationGranted ? '허용됨' : '허용 안 됨'}
                     </Text> */}
-                  </>
-                )}
-              </Pressable>
-            </View>
+                    </>
+                  )}
+                </Pressable>
+              </View>
 
-            <Pressable
-              onPress={() => {
-                setShowSettings(false);
-                setTempReminderHour(null);
-              }}
-              style={styles.settingsClose}
-            >
-              <Text style={styles.settingsCloseText}>닫기</Text>
-            </Pressable>
+              <View style={styles.settingsDivider} />
+
+              {/* 차단된 이웃 관리 */}
+              <Text style={styles.settingsLabel}>차단된 이웃</Text>
+              {blockedUsers.length === 0 ? (
+                <Text style={styles.settingsHint}>차단된 이웃이 없어</Text>
+              ) : (
+                blockedUsers.map(bu => (
+                  <View key={bu.id} style={styles.blockedRow}>
+                    <PixelAvatar avatarData={bu.avatar_data} size={28} />
+                    <Text style={styles.blockedNickname} numberOfLines={1}>
+                      {bu.nickname}
+                    </Text>
+                    <NintendoButton
+                      title="해제"
+                      variant="muted"
+                      small
+                      onPress={() => unblockUser(bu.id)}
+                    />
+                  </View>
+                ))
+              )}
+
+              <Pressable
+                onPress={() => {
+                  setShowSettings(false);
+                  setTempReminderHour(null);
+                }}
+                style={styles.settingsClose}
+              >
+                <Text style={styles.settingsCloseText}>닫기</Text>
+              </Pressable>
+            </ScrollView>
           </Pressable>
         </Pressable>
       )}
@@ -885,7 +923,10 @@ export default function DashboardScreen() {
               {friends.find(f => f.friend_id === unfriendConfirm)?.nickname}
               님과 이웃을 끊을까?
             </Text>
-            <Text style={styles.modalSub}>서로의 마을에서 사라지게 돼</Text>
+            <Text style={styles.modalSub}>
+              내 목록에서 사라지지만, 상대방에게는 남아있어{'\n'}
+              양쪽 모두 끊으려면 차단을 해줘
+            </Text>
             <View style={styles.modalBtns}>
               <NintendoButton
                 title="취소"
@@ -915,10 +956,7 @@ export default function DashboardScreen() {
 
       {/* 차단 확인 */}
       {blockConfirm && (
-        <Pressable
-          style={styles.overlay}
-          onPress={() => setBlockConfirm(null)}
-        >
+        <Pressable style={styles.overlay} onPress={() => setBlockConfirm(null)}>
           <Pressable
             style={styles.modalCard}
             onPress={e => e.stopPropagation()}
@@ -950,7 +988,7 @@ export default function DashboardScreen() {
                   if (error) {
                     setKnockError(error);
                   } else {
-                    setKnockToast('차단했어');
+                    setKnockToast('차단했어. 설정에서 해제할 수 있어');
                   }
                 }}
                 style={styles.modalBtn}
@@ -962,10 +1000,7 @@ export default function DashboardScreen() {
 
       {/* 신고 사유 선택 */}
       {reportTarget && (
-        <Pressable
-          style={styles.overlay}
-          onPress={() => setReportTarget(null)}
-        >
+        <Pressable style={styles.overlay} onPress={() => setReportTarget(null)}>
           <Pressable
             style={styles.modalCard}
             onPress={e => e.stopPropagation()}
@@ -976,9 +1011,9 @@ export default function DashboardScreen() {
             <Text style={styles.modalSub}>신고 사유를 선택해줘</Text>
             <View style={styles.menuBtns}>
               {[
-                {label: '부적절한 닉네임', reason: 'inappropriate_nickname'},
-                {label: '불쾌한 메시지', reason: 'offensive_message'},
-                {label: '기타 부적절한 행위', reason: 'other'},
+                { label: '부적절한 닉네임', reason: 'inappropriate_nickname' },
+                { label: '불쾌한 메시지', reason: 'offensive_message' },
+                { label: '기타 부적절한 행위', reason: 'other' },
               ].map(item => (
                 <NintendoButton
                   key={item.reason}
@@ -1064,6 +1099,15 @@ export default function DashboardScreen() {
                   setMenuFriend(null);
                   setKnockHistoryFriend(friend);
                   loadKnockHistory(friend.friend_id);
+                }}
+              />
+              <NintendoButton
+                title="이웃 끊기"
+                variant="muted"
+                onPress={() => {
+                  const friend = menuFriend;
+                  setMenuFriend(null);
+                  setUnfriendConfirm(friend.friend_id);
                 }}
               />
               <NintendoButton
@@ -1626,6 +1670,7 @@ function useStyles(colors: ColorScheme) {
           padding: Spacing.xl,
           width: '100%',
           maxWidth: 320,
+          maxHeight: '80%',
           alignItems: 'center',
         },
         modalIcon: {
@@ -1781,6 +1826,18 @@ function useStyles(colors: ColorScheme) {
           opacity: 0.6,
           textAlign: 'center',
           marginBottom: Spacing.xs,
+        },
+        blockedRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: Spacing.sm,
+          marginBottom: Spacing.sm,
+        },
+        blockedNickname: {
+          flex: 1,
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.sm,
+          color: colors.foreground,
         },
       }),
     [colors],

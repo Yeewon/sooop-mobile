@@ -72,7 +72,7 @@ export default function DashboardHeader({
             pressed && styles.headerBtnPressed,
           ]}>
           <Image
-            source={require('../../assets/icons/alarm.png')}
+            source={require('../../assets/icons/gear.png')}
             style={styles.headerBtnIcon}
           />
         </Pressable>

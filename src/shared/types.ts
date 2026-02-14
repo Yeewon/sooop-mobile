@@ -63,6 +63,12 @@ export interface FriendWithStatus {
   has_knock_request_sent: boolean;
 }
 
+export interface BlockedUser {
+  id: string;
+  nickname: string;
+  avatar_data: AvatarData | null;
+}
+
 export interface IncomingKnockRequest {
   from_user_id: string;
   nickname: string;

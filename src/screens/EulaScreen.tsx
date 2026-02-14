@@ -1,12 +1,13 @@
-import React, {useState} from 'react';
-import {View, Text, ScrollView, StyleSheet} from 'react-native';
-import {useColors} from '../contexts/ThemeContext';
-import {useAuthContext} from '../contexts/AuthContext';
-import {Fonts, FontSizes, Spacing} from '../theme';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useColors } from '../contexts/ThemeContext';
+import { useAuthContext } from '../contexts/AuthContext';
+import { Fonts, FontSizes, Spacing } from '../theme';
 import NintendoButton from '../components/NintendoButton';
 import NintendoCard from '../components/NintendoCard';
 
-const EULA_TEXT = `숲(sooop) 이용약관
+const EULA_TEXT = `안녕하숲(sooop) 이용약관
 
 1. 서비스 이용 규칙
 - 다른 이웃에게 불쾌감을 주는 행위(욕설, 비방, 혐오 표현, 성적 콘텐츠 등)는 금지됩니다.
@@ -32,7 +33,7 @@ const EULA_TEXT = `숲(sooop) 이용약관
 
 export default function EulaScreen() {
   const colors = useColors();
-  const {acceptEula} = useAuthContext();
+  const { acceptEula } = useAuthContext();
   const [loading, setLoading] = useState(false);
 
   const handleAccept = async () => {
@@ -45,20 +46,19 @@ export default function EulaScreen() {
   };
 
   return (
-    <View style={[styles.container, {backgroundColor: colors.background}]}>
-      <Text style={[styles.header, {color: colors.foreground}]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
+      <Text style={[styles.header, { color: colors.foreground }]}>
         이용약관
       </Text>
-      <Text style={[styles.subheader, {color: colors.muted}]}>
-        숲 마을에 들어가기 전에 읽어줘!
+      <Text style={[styles.subheader, { color: colors.muted }]}>
+        마을에 들어가기 전에 읽어줘!
       </Text>
 
       <NintendoCard style={styles.card}>
-        <ScrollView
-          style={styles.scroll}
-          showsVerticalScrollIndicator={false}
-        >
-          <Text style={[styles.eulaText, {color: colors.foreground}]}>
+        <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+          <Text style={[styles.eulaText, { color: colors.foreground }]}>
             {EULA_TEXT}
           </Text>
         </ScrollView>
@@ -70,7 +70,7 @@ export default function EulaScreen() {
         onPress={handleAccept}
         disabled={loading}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -78,7 +78,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: Spacing.lg,
-    paddingTop: 60,
   },
   header: {
     fontFamily: Fonts.bold,

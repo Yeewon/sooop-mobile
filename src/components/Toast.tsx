@@ -28,17 +28,18 @@ export default function Toast({
   }, [onDismiss, duration]);
 
   const bgColor = type === 'success' ? colors.nintendoGreen : colors.foreground;
+  const textColor = colors.background;
 
   return (
     <Pressable
       onPress={onDismiss}
       style={[
         styles.container,
-        { backgroundColor: bgColor },
+        { backgroundColor: bgColor, borderColor: bgColor },
         bottomOffset != null ? { bottom: bottomOffset } : {},
       ]}
     >
-      <Text style={styles.text}>{message}</Text>
+      <Text style={{...styles.text, color: textColor}}>{message}</Text>
     </Pressable>
   );
 }
