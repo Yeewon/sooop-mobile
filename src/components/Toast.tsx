@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useColors } from '../contexts/ThemeContext';
 import type { ColorScheme } from '../theme/colors';
 import { Fonts, FontSizes, Spacing } from '../theme';
@@ -31,16 +31,23 @@ export default function Toast({
   const textColor = colors.background;
 
   return (
-    <Pressable
-      onPress={onDismiss}
+    <View
       style={[
-        styles.container,
-        { backgroundColor: bgColor, borderColor: bgColor },
+        styles.wrapper,
         bottomOffset != null ? { bottom: bottomOffset } : {},
       ]}
+      pointerEvents="box-none"
     >
-      <Text style={{...styles.text, color: textColor}}>{message}</Text>
-    </Pressable>
+      <Pressable
+        onPress={onDismiss}
+        style={[
+          styles.container,
+          { backgroundColor: bgColor, borderColor: bgColor },
+        ]}
+      >
+        <Text style={{ ...styles.text, color: textColor }}>{message}</Text>
+      </Pressable>
+    </View>
   );
 }
 
@@ -48,16 +55,20 @@ function useStyles(colors: ColorScheme) {
   return useMemo(
     () =>
       StyleSheet.create({
-        container: {
+        wrapper: {
           position: 'absolute',
           bottom: 50,
-          alignSelf: 'center',
+          left: 0,
+          right: 0,
+          alignItems: 'center',
+          zIndex: 999,
+        },
+        container: {
           paddingHorizontal: Spacing.lg,
           paddingVertical: Spacing.sm + 2,
           borderRadius: 20,
           borderWidth: 2,
           borderColor: colors.shadowColor,
-          zIndex: 999,
         },
         text: {
           fontFamily: Fonts.bold,

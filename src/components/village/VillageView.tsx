@@ -465,7 +465,11 @@ export default function VillageView({
               onPress={() => onNpcChat(def.type)}
             >
               <View style={styles.onlineAvatarWrap}>
-                <Svg width={24} height={24} viewBox={`0 0 ${def.renderWidth} ${def.renderHeight}`}>
+                <Svg
+                  width={24}
+                  height={24}
+                  viewBox={`0 0 ${def.renderWidth} ${def.renderHeight}`}
+                >
                   {def.art.grid.map((row, ry) =>
                     row.map((cell, rx) =>
                       cell === 0 ? null : (

@@ -40,7 +40,10 @@ import {
   VILLAGE_CHARACTERS,
   getDailyIndex,
 } from '../shared/constants';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  getPendingInviteCode,
+  clearPendingInviteCode,
+} from '../lib/pendingInvite';
 import { supabase } from '../lib/supabase';
 import { FriendWithStatus } from '../shared/types';
 import PixelAvatar from '../components/PixelAvatar';
@@ -89,7 +92,7 @@ export default function DashboardScreen() {
 
   // 딥링크로 초대 코드 받으면 자동 친구 추가
   useDeepLink(async (code: string) => {
-    const {error} = await addFriend(code);
+    const { error } = await addFriend(code);
     if (error) {
       setKnockError(error);
     } else {
@@ -100,10 +103,10 @@ export default function DashboardScreen() {
   // 회원가입 전 저장된 초대 코드 처리
   useEffect(() => {
     const processPendingInvite = async () => {
-      const code = await AsyncStorage.getItem('sooop_pending_invite_code');
+      const code = getPendingInviteCode();
       if (!code) return;
-      await AsyncStorage.removeItem('sooop_pending_invite_code');
-      const {error} = await addFriend(code);
+      clearPendingInviteCode();
+      const { error } = await addFriend(code);
       if (error) {
         setKnockError(error);
       } else {

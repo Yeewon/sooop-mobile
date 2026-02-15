@@ -10,8 +10,8 @@ import {
   ScrollView,
 } from 'react-native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useColors} from '../contexts/ThemeContext';
+import {getPendingInviteCode, onPendingInviteChange} from '../lib/pendingInvite';
 import type {ColorScheme} from '../theme/colors';
 import {Fonts, FontSizes, Spacing} from '../theme';
 import NintendoButton from '../components/NintendoButton';
@@ -57,9 +57,7 @@ export default function LoginScreen({navigation}: Props) {
   const styles = useStyles(colors);
 
   useEffect(() => {
-    const checkPendingInvite = async () => {
-      const code = await AsyncStorage.getItem('sooop_pending_invite_code');
-      if (!code) return;
+    const fetchInviterName = async (code: string) => {
       const {data} = await supabase
         .from('profiles')
         .select('nickname')
@@ -69,7 +67,16 @@ export default function LoginScreen({navigation}: Props) {
         setInviterName(data.nickname);
       }
     };
-    checkPendingInvite();
+
+    // 마운트 시 이미 저장된 코드 확인
+    const code = getPendingInviteCode();
+    if (code) fetchInviterName(code);
+
+    // 앱이 열린 상태에서 딥링크가 올 때
+    const unsubscribe = onPendingInviteChange(newCode => {
+      if (newCode) fetchInviterName(newCode);
+    });
+    return unsubscribe;
   }, []);
 
   const handleLogin = async () => {

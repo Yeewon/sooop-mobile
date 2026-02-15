@@ -1,8 +1,8 @@
-import React, {useEffect} from 'react';
-import {Linking} from 'react-native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useAuthContext} from '../contexts/AuthContext';
+import React, { useEffect } from 'react';
+import { Linking } from 'react-native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useAuthContext } from '../contexts/AuthContext';
+import { setPendingInviteCode } from '../lib/pendingInvite';
 import LoginScreen from '../screens/LoginScreen';
 import SignUpScreen from '../screens/SignUpScreen';
 import EmailConfirmScreen from '../screens/EmailConfirmScreen';
@@ -11,23 +11,23 @@ import DashboardScreen from '../screens/DashboardScreen';
 import NpcChatScreen from '../screens/NpcChatScreen';
 import BootSplash from 'react-native-bootsplash';
 
-const PENDING_INVITE_KEY = 'sooop_pending_invite_code';
-
 const Stack = createNativeStackNavigator();
 
 export default function RootNavigator() {
-  const {user, profile, loading} = useAuthContext();
+  const { user, profile, loading } = useAuthContext();
 
-  // 비로그인 상태에서 딥링크 초대 코드를 저장
+  // 비로그인 상태에서 딥링크 초대 코드를 메모리에 저장
   useEffect(() => {
     const saveInviteCode = (url: string) => {
       const match = url.match(/sooop:\/\/invite\/([A-Z0-9]+)/i);
       if (match?.[1]) {
-        AsyncStorage.setItem(PENDING_INVITE_KEY, match[1].toUpperCase());
+        setPendingInviteCode(match[1].toUpperCase());
       }
     };
 
-    const sub = Linking.addEventListener('url', ({url}) => saveInviteCode(url));
+    const sub = Linking.addEventListener('url', ({ url }) =>
+      saveInviteCode(url),
+    );
     Linking.getInitialURL().then(url => {
       if (url) {
         saveInviteCode(url);
@@ -40,7 +40,7 @@ export default function RootNavigator() {
   useEffect(() => {
     // user가 있으면 profile 로딩까지 대기 후 스플래시 숨김
     if (!loading && (!user || profile)) {
-      BootSplash.hide({fade: true});
+      BootSplash.hide({ fade: true });
     }
   }, [loading, user, profile]);
 
@@ -49,7 +49,7 @@ export default function RootNavigator() {
   }
 
   return (
-    <Stack.Navigator screenOptions={{headerShown: false}}>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       {user && profile?.eula_accepted_at ? (
         // 로그인 + EULA 동의 완료
         <Stack.Group>
@@ -57,7 +57,7 @@ export default function RootNavigator() {
           <Stack.Screen
             name="NpcChat"
             component={NpcChatScreen}
-            options={{animation: 'slide_from_bottom'}}
+            options={{ animation: 'slide_from_bottom' }}
           />
         </Stack.Group>
       ) : user ? (
