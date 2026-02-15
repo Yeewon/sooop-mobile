@@ -40,6 +40,7 @@ import {
   VILLAGE_CHARACTERS,
   getDailyIndex,
 } from '../shared/constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
 import { FriendWithStatus } from '../shared/types';
 import PixelAvatar from '../components/PixelAvatar';
@@ -88,13 +89,30 @@ export default function DashboardScreen() {
 
   // 딥링크로 초대 코드 받으면 자동 친구 추가
   useDeepLink(async (code: string) => {
-    const { error } = await addFriend(code);
+    const {error} = await addFriend(code);
     if (error) {
       setKnockError(error);
     } else {
       setKnockToast('새 이웃이 생겼어!');
     }
   });
+
+  // 회원가입 전 저장된 초대 코드 처리
+  useEffect(() => {
+    const processPendingInvite = async () => {
+      const code = await AsyncStorage.getItem('sooop_pending_invite_code');
+      if (!code) return;
+      await AsyncStorage.removeItem('sooop_pending_invite_code');
+      const {error} = await addFriend(code);
+      if (error) {
+        setKnockError(error);
+      } else {
+        setKnockToast('새 이웃이 생겼어!');
+      }
+    };
+    processPendingInvite();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const {
     friends,

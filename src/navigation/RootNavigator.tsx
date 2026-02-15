@@ -1,5 +1,7 @@
 import React, {useEffect} from 'react';
+import {Linking} from 'react-native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useAuthContext} from '../contexts/AuthContext';
 import LoginScreen from '../screens/LoginScreen';
 import SignUpScreen from '../screens/SignUpScreen';
@@ -9,10 +11,31 @@ import DashboardScreen from '../screens/DashboardScreen';
 import NpcChatScreen from '../screens/NpcChatScreen';
 import BootSplash from 'react-native-bootsplash';
 
+const PENDING_INVITE_KEY = 'sooop_pending_invite_code';
+
 const Stack = createNativeStackNavigator();
 
 export default function RootNavigator() {
   const {user, profile, loading} = useAuthContext();
+
+  // 비로그인 상태에서 딥링크 초대 코드를 저장
+  useEffect(() => {
+    const saveInviteCode = (url: string) => {
+      const match = url.match(/sooop:\/\/invite\/([A-Z0-9]+)/i);
+      if (match?.[1]) {
+        AsyncStorage.setItem(PENDING_INVITE_KEY, match[1].toUpperCase());
+      }
+    };
+
+    const sub = Linking.addEventListener('url', ({url}) => saveInviteCode(url));
+    Linking.getInitialURL().then(url => {
+      if (url) {
+        saveInviteCode(url);
+      }
+    });
+
+    return () => sub.remove();
+  }, []);
 
   useEffect(() => {
     // user가 있으면 profile 로딩까지 대기 후 스플래시 숨김

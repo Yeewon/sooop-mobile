@@ -1,4 +1,4 @@
-import React, {useState, useMemo} from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   ScrollView,
 } from 'react-native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useColors} from '../contexts/ThemeContext';
 import type {ColorScheme} from '../theme/colors';
 import {Fonts, FontSizes, Spacing} from '../theme';
@@ -17,6 +18,7 @@ import NintendoButton from '../components/NintendoButton';
 import NintendoInput from '../components/NintendoInput';
 import NintendoCard from '../components/NintendoCard';
 import {useAuthContext} from '../contexts/AuthContext';
+import {supabase} from '../lib/supabase';
 
 function toKoreanError(message: string): string {
   const map: Record<string, string> = {
@@ -49,9 +51,26 @@ export default function LoginScreen({navigation}: Props) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [inviterName, setInviterName] = useState<string | null>(null);
   const {signIn} = useAuthContext();
   const colors = useColors();
   const styles = useStyles(colors);
+
+  useEffect(() => {
+    const checkPendingInvite = async () => {
+      const code = await AsyncStorage.getItem('sooop_pending_invite_code');
+      if (!code) return;
+      const {data} = await supabase
+        .from('profiles')
+        .select('nickname')
+        .eq('invite_code', code)
+        .single();
+      if (data?.nickname) {
+        setInviterName(data.nickname);
+      }
+    };
+    checkPendingInvite();
+  }, []);
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -83,9 +102,20 @@ export default function LoginScreen({navigation}: Props) {
               style={styles.logoIcon}
             />
           </NintendoCard>
-          <Text style={styles.subtitle}>
-            우리 마을의 작은{'\n'}안부 게시판
-          </Text>
+          {inviterName ? (
+            <>
+              <Text style={styles.inviteTitle}>
+                {inviterName}님이 마을로 초대했어!
+              </Text>
+              <Text style={styles.subtitle}>
+                같이 이웃이 되자
+              </Text>
+            </>
+          ) : (
+            <Text style={styles.subtitle}>
+              우리 마을의 작은{'\n'}안부 게시판
+            </Text>
+          )}
         </View>
 
         <NintendoCard style={styles.formCard}>
@@ -168,6 +198,13 @@ function useStyles(colors: ColorScheme) {
           color: colors.muted,
           textAlign: 'center',
           lineHeight: 22,
+        },
+        inviteTitle: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.lg,
+          color: colors.foreground,
+          textAlign: 'center',
+          marginBottom: 4,
         },
         formCard: {
           padding: Spacing.xl,
