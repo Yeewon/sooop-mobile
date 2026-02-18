@@ -138,7 +138,7 @@ export default function DashboardScreen() {
     reload,
   } = useFriends(user?.id);
 
-  const [viewMode, setViewMode] = useState<'list' | 'village'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'village'>('village');
   const [refreshing, setRefreshing] = useState(false);
   const [msgIndex, setMsgIndex] = useState(() =>
     getDailyIndex(DAILY_MESSAGES.length),
@@ -376,23 +376,6 @@ export default function DashboardScreen() {
       {/* 뷰 모드 토글 */}
       <View style={{ ...styles.viewToggleRow, marginBottom: Spacing.md }}>
         <Pressable
-          onPress={() => setViewMode('list')}
-          style={{
-            ...styles.viewToggleBtn,
-            backgroundColor:
-              viewMode === 'list' ? colors.nintendoBlue : colors.cardBg,
-          }}
-        >
-          <Text
-            style={{
-              ...styles.viewToggleText,
-              color: viewMode === 'list' ? colors.white : colors.muted,
-            }}
-          >
-            목록
-          </Text>
-        </Pressable>
-        <Pressable
           onPress={() => setViewMode('village')}
           style={{
             ...styles.viewToggleBtn,
@@ -407,6 +390,23 @@ export default function DashboardScreen() {
             }}
           >
             마을
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={() => setViewMode('list')}
+          style={{
+            ...styles.viewToggleBtn,
+            backgroundColor:
+              viewMode === 'list' ? colors.nintendoBlue : colors.cardBg,
+          }}
+        >
+          <Text
+            style={{
+              ...styles.viewToggleText,
+              color: viewMode === 'list' ? colors.white : colors.muted,
+            }}
+          >
+            목록
           </Text>
         </Pressable>
       </View>

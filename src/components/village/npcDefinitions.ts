@@ -8,7 +8,7 @@ export type PixelArtDef = {
   palette: Record<number, string>;
 };
 
-export type NpcType = 'cat' | 'dog' | 'bird' | 'butterfly';
+export type NpcType = 'cat' | 'dog' | 'bird' | 'butterfly' | 'shaman' | 'fan';
 
 export interface NpcDef {
   type: NpcType;
@@ -136,6 +136,63 @@ const NPC_BUTTERFLY: PixelArtDef = {
   },
 };
 
+// ── 무녀: 점술사 (8×11, pixelSize 5 = 40×55px) ──
+const NPC_SHAMAN: PixelArtDef = {
+  width: 8,
+  height: 11,
+  pixelSize: 5,
+  grid: [
+    [0, 0, 1, 1, 1, 1, 0, 0],
+    [0, 1, 1, 1, 1, 1, 1, 0],
+    [0, 1, 2, 2, 2, 2, 1, 0],
+    [0, 0, 2, 3, 3, 2, 0, 0],
+    [0, 0, 2, 2, 2, 2, 0, 0],
+    [0, 4, 4, 4, 4, 4, 4, 0],
+    [0, 4, 5, 4, 4, 5, 4, 0],
+    [0, 2, 4, 6, 6, 4, 2, 0],
+    [0, 0, 4, 4, 4, 4, 0, 0],
+    [0, 0, 4, 0, 0, 4, 0, 0],
+    [0, 0, 7, 0, 0, 7, 0, 0],
+  ],
+  palette: {
+    1: '#1A1A2E', // 짙은 남색 머리
+    2: '#FFD5A8', // 피부
+    3: '#2D2D2D', // 눈
+    4: '#6B3FA0', // 보라 한복
+    5: '#FFD93D', // 금색 방울
+    6: '#E8C8A0', // 띠
+    7: '#3A2A4A', // 신발
+  },
+};
+
+// ── 리나: 팬클럽 회장 (8×11, pixelSize 5 = 40×55px) ──
+const NPC_FAN: PixelArtDef = {
+  width: 8,
+  height: 11,
+  pixelSize: 5,
+  grid: [
+    [0, 0, 1, 1, 1, 1, 0, 0],
+    [0, 1, 1, 1, 1, 1, 1, 0],
+    [0, 1, 2, 2, 2, 2, 1, 0],
+    [0, 0, 2, 3, 3, 2, 0, 0],
+    [0, 0, 2, 2, 2, 2, 0, 0],
+    [0, 4, 4, 4, 4, 4, 4, 0],
+    [0, 4, 4, 5, 5, 4, 4, 0],
+    [0, 2, 4, 4, 4, 4, 2, 0],
+    [0, 0, 4, 4, 4, 4, 0, 0],
+    [0, 0, 4, 0, 0, 4, 0, 0],
+    [0, 0, 6, 0, 0, 6, 0, 0],
+  ],
+  palette: {
+    1: '#2A1A1A', // 짙은 갈색 머리
+    2: '#FFD5A8', // 피부
+    3: '#2D2D2D', // 눈
+    4: '#FF69B4', // 핑크 후드티
+    5: '#FFD93D', // 별 로고
+    6: '#FFFFFF', // 흰 운동화
+  },
+};
+
 // ── NPC 정의 ──
 export const NPC_DEFS: NpcDef[] = [
   {
@@ -182,10 +239,32 @@ export const NPC_DEFS: NpcDef[] = [
     moveDuration: 1300,
     idlePause: [2000, 4500],
   },
+  {
+    type: 'shaman',
+    art: NPC_SHAMAN,
+    renderWidth: 8 * 5,
+    renderHeight: 11 * 5,
+    wanderRadius: 55,
+    wanderInterval: [3000, 6000],
+    reactions: ['오늘 운세 볼래?', '별이 말해주더라~', '기운이 좋은데?', '점 한번 봐줄까!'],
+    moveDuration: 1100,
+    idlePause: [2000, 5000],
+  },
+  {
+    type: 'fan',
+    art: NPC_FAN,
+    renderWidth: 8 * 5,
+    renderHeight: 11 * 5,
+    wanderRadius: 75,
+    wanderInterval: [2000, 4500],
+    reactions: ['오늘 컴백이야!', '덕질은 행복이지~', '최애가 최고야!', '같이 덕질할래?'],
+    moveDuration: 900,
+    idlePause: [1500, 3500],
+  },
 ];
 
 // ── 스폰 설정 ──
-export const NPC_SPAWN_COUNT = 5;
+export const NPC_SPAWN_COUNT = 6;
 const MARGIN = 50;
 
 function seededRandom(seed: number): number {
