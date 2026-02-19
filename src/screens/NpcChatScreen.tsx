@@ -559,11 +559,11 @@ export default function NpcChatScreen({ route, navigation }: Props) {
                   <Text style={styles.npcBubbleName}>{npcName}</Text>
                 )}
                 {msg.role === 'user' ? (
-                  <Text style={styles.userText}>{msg.text}</Text>
+                  <Text selectable style={styles.userText}>{msg.text}</Text>
                 ) : isLastNpc ? (
                   <TypewriterText text={msg.text} style={styles.npcText} />
                 ) : (
-                  <Text style={styles.npcText}>{msg.text}</Text>
+                  <Text selectable style={styles.npcText}>{msg.text}</Text>
                 )}
               </View>
             );

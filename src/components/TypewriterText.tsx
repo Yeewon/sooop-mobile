@@ -24,12 +24,14 @@ export default function TypewriterText({text, speed = 45, style}: TypewriterText
     return () => clearInterval(interval);
   }, [text, speed]);
 
+  const done = count >= text.length;
+
   return (
     <View>
       {/* 보이지 않는 전체 텍스트로 높이 확보 */}
       <Text style={[style, styles.hidden]}>{text}</Text>
       {/* 타이핑 중인 텍스트 */}
-      <Text style={[style, styles.visible]}>{text.slice(0, count)}</Text>
+      <Text selectable={done} style={[style, styles.visible]}>{text.slice(0, count)}</Text>
     </View>
   );
 }
