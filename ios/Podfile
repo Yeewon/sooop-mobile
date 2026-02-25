@@ -27,6 +27,10 @@ target 'sooop' do
   pod 'FirebaseCoreExtension', :modular_headers => true
   pod 'FirebaseMessaging', :modular_headers => true
 
+  # Kakao Share SDK (same version as kakao-login to avoid conflicts)
+  pod 'KakaoSDKShare', '2.22.0'
+  pod 'KakaoSDKTemplate', '2.22.0'
+
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.

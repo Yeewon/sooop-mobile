@@ -4,6 +4,8 @@ import React_RCTAppDelegate
 import ReactAppDependencyProvider
 import FirebaseCore
 import RNBootSplash
+import KakaoSDKCommon
+import KakaoSDKAuth
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -16,6 +18,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
+    // Kakao SDK 초기화
+    if let kakaoAppKey = Bundle.main.infoDictionary?["KAKAO_APP_KEY"] as? String {
+      KakaoSDK.initSDK(appKey: kakaoAppKey)
+    }
+
     FirebaseApp.configure()
 
     let delegate = ReactNativeDelegate()
@@ -45,6 +52,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     open url: URL,
     options: [UIApplication.OpenURLOptionsKey: Any] = [:]
   ) -> Bool {
+    // 카카오 로그인 콜백 처리
+    if AuthApi.isKakaoTalkLoginUrl(url) {
+      return AuthController.handleOpenUrl(url: url)
+    }
+    // React Native 딥링크 (sooop://)
     return RCTLinkingManager.application(app, open: url, options: options)
   }
 }

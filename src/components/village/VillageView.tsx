@@ -93,6 +93,7 @@ interface VillageViewProps {
   myUserId: string | undefined;
   onFriendPress: (friend: FriendWithStatus) => void;
   onNpcChat: (npcType: NpcType) => void;
+  onInvite?: () => void;
   weather?: WeatherData | null;
   isAdmin?: boolean;
   blockedIds?: Set<string>;
@@ -105,6 +106,7 @@ export default function VillageView({
   myUserId,
   onFriendPress,
   onNpcChat,
+  onInvite,
   weather,
   isAdmin,
   blockedIds,
@@ -633,7 +635,8 @@ export default function VillageView({
 
             {/* 빈 마을 안내 */}
             {friends.length === 0 && (
-              <View
+              <Pressable
+                onPress={onInvite}
                 style={{
                   position: 'absolute',
                   left: WORLD_WIDTH / 2 - 100,
@@ -644,7 +647,7 @@ export default function VillageView({
                 <Text style={styles.emptyText}>
                   아직 이웃이 없어{'\n'}초대장을 보내서 마을을 채워봐!
                 </Text>
-              </View>
+              </Pressable>
             )}
           </Animated.View>
 
@@ -813,7 +816,14 @@ export default function VillageView({
                 마을에서 주민을 탭해서 대화해봐!
               </Text>
               {NPC_DEFS.map(def => (
-                <View key={def.type} style={styles.npcInfoItem}>
+                <Pressable
+                  key={def.type}
+                  style={styles.npcInfoItem}
+                  onPress={() => {
+                    handleCloseNpcInfo();
+                    onNpcChat(def.type);
+                  }}
+                >
                   <View style={styles.npcInfoArt}>
                     <Svg width={def.renderWidth} height={def.renderHeight}>
                       {def.art.grid.map((row, ry) =>
@@ -840,7 +850,7 @@ export default function VillageView({
                       {NPC_PERSONALITIES[def.type]}
                     </Text>
                   </View>
-                </View>
+                </Pressable>
               ))}
             </View>
           </Pressable>

@@ -550,6 +550,7 @@ export default function DashboardScreen() {
           myUserId={user?.id}
           onFriendPress={friend => handleKnock(friend.friend_id)}
           onNpcChat={npcType => navigation.navigate('NpcChat', { npcType })}
+          onInvite={() => setShowInvite(true)}
           weather={weather}
           isAdmin={isAdmin}
           blockedIds={blockedIds}

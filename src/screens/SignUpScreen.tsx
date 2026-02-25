@@ -62,7 +62,7 @@ export default function SignUpScreen({ navigation }: Props) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signUp } = useAuthContext();
+  const { signUp, signInWithKakao } = useAuthContext();
   const colors = useColors();
   const styles = useStyles(colors);
 
@@ -75,6 +75,18 @@ export default function SignUpScreen({ navigation }: Props) {
       ...prev,
       [key]: (prev[key] + dir + max) % max,
     }));
+  };
+
+  const handleKakaoLogin = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      await signInWithKakao();
+    } catch (err: any) {
+      setError(toKoreanError(err.message || ''));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSignUp = async () => {
@@ -281,6 +293,19 @@ export default function SignUpScreen({ navigation }: Props) {
           />
         </NintendoCard>
 
+        <View style={styles.dividerRow}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>또는</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        <Pressable
+          onPress={handleKakaoLogin}
+          disabled={loading}
+          style={styles.kakaoButton}>
+          <Text style={styles.kakaoButtonText}>카카오로 시작하기</Text>
+        </Pressable>
+
         <Pressable onPress={() => navigation.goBack()}>
           <Text style={styles.switchText}>이미 마을 주민이야? 로그인</Text>
         </Pressable>
@@ -404,6 +429,37 @@ function useStyles(colors: ColorScheme) {
         },
         submitButton: {
           marginTop: Spacing.sm,
+        },
+        dividerRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          marginTop: Spacing.lg,
+          marginBottom: Spacing.sm,
+          paddingHorizontal: Spacing.md,
+        },
+        dividerLine: {
+          flex: 1,
+          height: 1,
+          backgroundColor: colors.border,
+        },
+        dividerText: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.xs,
+          color: colors.muted,
+          marginHorizontal: Spacing.md,
+        },
+        kakaoButton: {
+          backgroundColor: '#FEE500',
+          borderRadius: 12,
+          paddingVertical: Spacing.md,
+          alignItems: 'center',
+          borderWidth: 2,
+          borderColor: colors.shadowColor,
+        },
+        kakaoButtonText: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.sm,
+          color: '#191919',
         },
         switchText: {
           fontFamily: Fonts.bold,

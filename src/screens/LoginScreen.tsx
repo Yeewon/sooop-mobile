@@ -52,7 +52,7 @@ export default function LoginScreen({navigation}: Props) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [inviterName, setInviterName] = useState<string | null>(null);
-  const {signIn} = useAuthContext();
+  const {signIn, signInWithKakao} = useAuthContext();
   const colors = useColors();
   const styles = useStyles(colors);
 
@@ -78,6 +78,18 @@ export default function LoginScreen({navigation}: Props) {
     });
     return unsubscribe;
   }, []);
+
+  const handleKakaoLogin = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      await signInWithKakao();
+    } catch (err: any) {
+      setError(toKoreanError(err.message || ''));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -164,6 +176,19 @@ export default function LoginScreen({navigation}: Props) {
           />
         </NintendoCard>
 
+        <View style={styles.dividerRow}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>또는</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        <Pressable
+          onPress={handleKakaoLogin}
+          disabled={loading}
+          style={styles.kakaoButton}>
+          <Text style={styles.kakaoButtonText}>카카오로 시작하기</Text>
+        </Pressable>
+
         <Pressable onPress={() => navigation.navigate('SignUp')}>
           <Text style={styles.switchText}>처음 왔어? 입주 신청</Text>
         </Pressable>
@@ -243,6 +268,37 @@ function useStyles(colors: ColorScheme) {
         },
         submitButton: {
           marginTop: Spacing.sm,
+        },
+        dividerRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          marginTop: Spacing.lg,
+          marginBottom: Spacing.sm,
+          paddingHorizontal: Spacing.md,
+        },
+        dividerLine: {
+          flex: 1,
+          height: 1,
+          backgroundColor: colors.border,
+        },
+        dividerText: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.xs,
+          color: colors.muted,
+          marginHorizontal: Spacing.md,
+        },
+        kakaoButton: {
+          backgroundColor: '#FEE500',
+          borderRadius: 12,
+          paddingVertical: Spacing.md,
+          alignItems: 'center',
+          borderWidth: 2,
+          borderColor: colors.shadowColor,
+        },
+        kakaoButtonText: {
+          fontFamily: Fonts.bold,
+          fontSize: FontSizes.sm,
+          color: '#191919',
         },
         switchText: {
           fontFamily: Fonts.bold,

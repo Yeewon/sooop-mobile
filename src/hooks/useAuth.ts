@@ -1,5 +1,6 @@
 import {useEffect, useState} from 'react';
 import {supabase} from '../lib/supabase';
+import {signInWithKakao as signInWithKakaoLib} from '../lib/kakaoAuth';
 import {AvatarData, Profile} from '../shared/types';
 import {User} from '@supabase/supabase-js';
 
@@ -54,6 +55,17 @@ export function useAuth() {
         data.invite_code = code;
       }
       setProfile(data as Profile);
+    } else {
+      // 프로필이 없는 경우 (카카오 등 소셜 로그인 첫 진입)
+      const {data: {user: currentUser}} = await supabase.auth.getUser();
+      if (currentUser) {
+        const nickname =
+          (currentUser.user_metadata?.name as string) ||
+          (currentUser.user_metadata?.preferred_username as string) ||
+          '새 주민';
+        await createProfile(userId, nickname);
+        return; // createProfile에서 setLoading(false) 호출
+      }
     }
     setLoading(false);
   };
@@ -102,6 +114,12 @@ export function useAuth() {
     if (data.user) {
       await createProfile(data.user.id, nickname, avatarData);
     }
+    return data;
+  };
+
+  const signInWithKakao = async () => {
+    const data = await signInWithKakaoLib();
+    // onAuthStateChange가 발동 → loadProfile에서 프로필 자동 생성
     return data;
   };
 
@@ -177,6 +195,7 @@ export function useAuth() {
     loading,
     signUp,
     signIn,
+    signInWithKakao,
     signOut,
     updateNickname,
     updateAvatar,
